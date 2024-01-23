@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\RegisteredUserController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -13,6 +15,14 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
+//Route::get('/', function () {
+//    return view('welcome');
+//});
+
+
+require __DIR__.'/auth.php';
+
+// Rota de Fallback para Página de Login
+Route::fallback(function () {
+    return redirect()->route('login');
 });
