@@ -1,67 +1,68 @@
 <!DOCTYPE html>
-<html lang="es" id="lang" xmlns:livewire="" xmlns:wire="http://www.w3.org/1999/xhtml">
+<html lang="es" id="lang">
 
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no">
-    <title>SISTEMA KNPOS</title>
+    <title>@yield('title', 'SISTEMA KNPOS')</title>
     <link rel="icon" type="image/x-icon" href="assets/img/favicon.ico" />
-
+    <link href="https://fonts.googleapis.com/css?family=Poppins:400,500,600,700&display=swap" rel="stylesheet">
     <!-- BEGIN GLOBAL MANDATORY STYLES -->
     @include('layouts.theme.styles')
     <!-- END PAGE LEVEL PLUGINS/CUSTOM STYLES -->
-
-    <link rel="stylesheet" href="{{ asset('css/apexcharts.css') }}" />
-    <script src="{{ asset('js/apexcharts.js') }}"></script>
-
-    @livewireScripts
+    @livewireStyles
 </head>
 
 <body class="dashboard-analytics" id="body">
 
-    <!-- BEGIN LOADER -->
-    <div id="load_screen">
-        <div class="loader">
-            <div class="loader-content">
-                <div class="spinner-grow align-self-center"></div>
-            </div>
+<!-- BEGIN LOADER -->
+<div id="load_screen">
+    <div class="loader">
+        <div class="loader-content">
+            <div class="spinner-grow align-self-center"></div>
         </div>
     </div>
-    <!--  END LOADER -->
+</div>
+<!--  END LOADER -->
 
-    <!--  BEGIN NAVBAR  -->
-    @include('layouts.theme.header')
-    <!--  END NAVBAR  -->
+<!--  BEGIN NAVBAR  -->
+@include('layouts.theme.header')
+<!--  END NAVBAR  -->
 
-    <!--  BEGIN MAIN CONTAINER  -->
-    <div class="main-container" id="container">
+<!--  BEGIN MAIN CONTAINER  -->
+<div class="main-container" id="container">
 
-        <!--div class="overlay"></div>
-        <div class="search-overlay"></div-->
+    <div class="overlay"></div>
+    <div class="search-overlay"></div>
 
-        <!--  BEGIN SIDEBAR  >
-        @ include('layouts.theme.sidebar')
-        <  END SIDEBAR  -->
+    <!--  BEGIN SIDEBAR  -->
+@include('layouts.theme.sidebar')
+<!--  END SIDEBAR  -->
 
-        <!--  BEGIN CONTENT AREA  -->
-        <div id="content" class="main-content">
+    <!--  BEGIN CONTENT AREA  -->
+    <div id="content" class="main-content">
 
-            <div class="layout-px-spacing">
-                <livewire:pos></livewire:pos>
-            </div>
+        <div class="layout-px-spacing">
+
+            @yield('content')
 
         </div>
-        <!--  END CONTENT AREA  -->
+
+
         @include('layouts.theme.footer')
-
     </div>
-    <!-- END MAIN CONTAINER -->
+    <!--  END CONTENT AREA  -->
 
-    <!-- BEGIN GLOBAL MANDATORY SCRIPTS -->
-    @include('layouts.theme.scripts')
-    <!-- BEGIN PAGE LEVEL PLUGINS/CUSTOM SCRIPTS -->
 
+</div>
+<!-- END MAIN CONTAINER -->
+
+<!-- BEGIN GLOBAL MANDATORY SCRIPTS -->
+@include('layouts.theme.scripts')
+<!-- BEGIN PAGE LEVEL PLUGINS/CUSTOM SCRIPTS -->
+
+@livewireScripts
 </body>
 
 </html>

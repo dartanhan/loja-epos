@@ -2,11 +2,25 @@
 namespace App\Traits;
 
 use App\Http\Livewire\CartTotal;
+use App\Http\Models\Carts;
 use App\Http\Models\ProdutoVariacao;
 use Darryldecode\Cart\Facades\CartFacade as Cart;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 
 trait CartTrait {
+
+
+
+    public function loadCartItems()
+    {
+        $this->items = Carts::with(['variations','clientes'])
+            ->where('user_id',  $this->userId )
+            ->where('status',  'ABERTO' )
+            ->get();
+
+        //dd($this->items);
+    }
 
     /**
      * Busca na base pelo cádigo do produto e adiciona no componente CART
@@ -15,12 +29,12 @@ trait CartTrait {
      */
     public function ScanearCode($barcode, $cant = 1)
     {
-
+       // dd();
         $product = ProdutoVariacao::with('images','produtos')
             ->where("subcodigo",$barcode)
             ->where("status",1)
             ->first();
-       // dd($product);
+
         if($product == null || empty($product))
         {
                 $this->emit('scan-notfound','Produto não registrado',1);
@@ -37,32 +51,37 @@ trait CartTrait {
                        $this->emit('no-stock','Atenção! Estoque insuficiente *');
                         return;
                 }
-          //  dd(count(Cart::session($this->userId)->getContent()));
-                Cart::session($this->userId)->add(array(
-                    'id' => $product->id,
-                    'name' => $product->subcodigo ." - ".$product['produtos'][0]->descricao ." - " . $product->variacao,
-                    'price' => $product->valor_varejo, //dinheiro
-                    'quantity' => $cant,
-                    'attributes' => [],
-                    'associatedModel' => $product
-                ));
 
-              // dd(count(Cart::session($this->userId)->getContent()));
+                $this->carts = new Carts();
+                $this->carts->user_id = $this->userId;
+                $this->carts->produto_variation_id = $product->id;
+                $this->carts->name =  $product->subcodigo ." - ".$product['produtos'][0]->descricao ." - " . $product->variacao;
+                $this->carts->price = $product->valor_varejo;
+                $this->carts->quantidade = $cant;
+                $this->carts->imagem = count($product->images) > 0 ? $product->images[0]->path : "";
 
-                $this->total = Cart::getTotal();
-                $this->totalPixDebitoCredito = $product->valor_varejo;
-                $this->itemsQuantity = Cart::getTotalQuantity();
+                if (!$this->items->isEmpty()) {
+                    if (!$this->items[0]->clientes->isEmpty()) {
+                        $this->carts->cliente_id = $this->items[0]->clientes[0]->id;
+                    }
+                }
+
+                $this->carts->save();
+
+                $this->total = $this->getTotalCartByUser(); //Cart::getTotal();
+               // $this->totalPixDebitoCredito = $product->valor_varejo;
+                //$this->itemsQuantity = Cart::getTotalQuantity();
 
                 //crio na session o codigo venda
                 if(Session::get('codigoVenda') == null){
                     $codigoVenda = $this->gerarNumeroAleatorioKN();
                     Session::put('codigoVenda', $codigoVenda);
                     //Emite o codigo venda para o input na tela
-                    $this->emit('codigo-venda',$codigoVenda);
+                   // $this->emit('codigo-venda',$codigoVenda);
                 }
 
                 $this->emit('scan-ok','Produto Adicionado!');
-                $this->emitTo('cart-total','updateCart', $product->valor_varejo);
+               // $this->emitTo('cart-total','updateCart', $product->valor_varejo);
         }
     }
 
@@ -87,8 +106,7 @@ trait CartTrait {
      */
     public function InCart($productId)
     {
-        Cart::session($this->userId)->getContent();
-        $exist = Cart::get($productId);
+        $exist = Carts::where('produto_variation_id', $productId)->where('user_id',$this->userId)->first();
 
         if($exist)
                 return true;
@@ -98,52 +116,37 @@ trait CartTrait {
 
     /**
      * Incrmenta a quantidade de produto no componente CART
-     * @param $product
+     * @param $product_id
      * @param int $cant
      */
-    public function IncreaseQuantity($product, $cant = 1)
+    public function IncreaseQuantity($product_id, $cant = 1)
     {
-            $msg ='';
-            Cart::session($this->userId)->getContent();
-            $exist = Cart::get($product->products_id);
-            if($exist)
-                    $msg = 'Quantidade Atualizada';
-            else
-                    $msg ='Produto Adicionado';
+            $product = Carts::with('variations')->where('produto_variation_id', $product_id)
+                    ->where('user_id',$this->userId)
+                    ->where('status', 'ABERTO')
+                    ->first();
 
-            if($exist)
+            if($product)
             {
-                    if($product->quantidade < ($cant + $exist->quantity))
-                    {
-                            $this->emit('no-stock','Atenção! Estoque insuficiente');
-                            return;
-                    }
+                if($product->quantidade > ($cant + $product->variations[0]->quantidade))
+                {
+                    $this->emit('no-stock','Atenção! Estoque insuficiente');
+                    return;
+                }
+
+                if($product->quantidade+1 >= 5){
+                    $product->price = $product->variations[0]->valor_atacado_10un;
+                }else{
+                    $product->price = $product->variations[0]->valor_varejo;
+                }
+                $product->quantidade++;
+
+                if($product->update()){
+                    $this->emit('scan-ok', "Produto atualizado com sucesso!");
+                }else{
+                    $this->emit('global-error', "Não foi possivel atualizar o produto!");
+                }
             }
-
-           // dd(Cart::get($product->id)->quantity);
-
-            if(Cart::get($product->id)->quantity+1 >= 5){
-                $price = $product->valor_atacado;
-                $this->emit('color-tr',['id' => $product->id, 'color' => "#ffcccc"] );
-            }else{
-                $price = $product->valor_varejo;
-            }
-
-            Cart::session($this->userId)->add(array(
-                'id' => $product->id,
-                'name' => $product->subcodigo ."-".$product['produtos'][0]->descricao ."-" . $product->variacao,
-                'price' => $price,
-                'quantity' => 1,
-                'attributes' => ['subcodigo' => $product->subcodigo],
-                'associatedModel' => $product
-            ));
-
-            $this->total = Cart::getTotal();
-            $this->itemsQuantity = Cart::getTotalQuantity();
-
-            $this->emit('scan-ok', $msg);
-            $this->emitTo('cart-total','updateCart', $this->total);
-
     }
 
     /**
@@ -152,58 +155,38 @@ trait CartTrait {
      */
     public function removeItem($productId)
     {
-         $this->emitTo('cart-component', 'removeItem', $productId);
-         $this->emitTo('cart-total','updateCart', $this->total);
+       //  $this->emitTo('cart-component', 'removeItem', $productId);
+        // $this->emitTo('cart-total','updateCart', $this->total);
     }
 
     /**
      * Decrementa a quantidade de produto no componente CART
-     * @param $product
+     * @param $product_id
      * @param int $cant
      */
-    public function decreaseQuantity($product, $cant = 1){
+    public function decreaseQuantity($product_id, $cant = 1){
 
-         // or any string represents user identifier
+        $product = Carts::with('variations')->where('produto_variation_id', $product_id)
+            ->where('user_id',$this->userId)
+            ->where('status', 'ABERTO')
+            ->first();
 
-            Cart::session($this->userId)->getContent();
+        if($product) {
+            $product->price = $product->variations[0]->valor_atacado_10un;
 
-            $item = Cart::get($product->id);
-
-            Cart::remove($product->id);
-
-            // si el producto no tiene imagen, mostramos una default
-           // $img = (count($item->attributes) > 0 ? $item->attributes[0] : ProdutoVariacao::find($productId)->imagem);
-
-            $newQty = ($item->quantity) - 1;
-
-            $price = $product->valor_atacado;
-
-            $this->emit('color-tr',['id' => $product->id, 'color' => "#ffcccc"] );
-            if($newQty <= 4){
-                $price = $product->valor_varejo;
-                $this->emit('color-tr',['id' => $product->id, 'color' => "white"] );
+            if ((($product->quantity) - 1) < 5) {
+                $product->price = $product->variations[0]->valor_varejo;
             }
 
+            $product->quantidade--;
 
-            if($newQty > 0) {
-                //Cart::add($item->id, $item->name, $item->price, $newQty, null);
-                Cart::session($this->userId)->add(array(
-                    'id' => $item->id,
-                    'name' => $item->name,
-                    'price' => $price,
-                    'quantity' => $newQty,
-                    'attributes' => [],
-                    'associatedModel' => $product
-                ));
-
-                $this->total = Cart::getTotal();
-                $this->itemsQuantity = Cart::getTotalQuantity();
-                $this->emit('scan-ok', 'Quantidade atualizada');
-                $this->emitTo('cart-total', 'updateCart', $this->total);
+            if($product->update()){
+                $this->emit('scan-ok', "Produto atualizado com sucesso!");
             }else{
-                $this->emit('scan-ok', 'Quantidade atualizada');
-                return;
+                $this->emit('global-error', "Não foi possivel atualizar o produto!");
             }
+
+        }
     }
 
     /**
@@ -277,4 +260,18 @@ trait CartTrait {
 //
 //        }
 //}
+
+
+    public function getTotalCartByUser()
+    {
+        // Obtendo todos os itens do carrinho do usuário
+        $items = Carts::where('user_id', Auth::id())->where('status' , 'ABERTO')->get();
+
+        // Calculando o total
+        $total = $items->sum(function ($item) {
+            return $item->quantidade * $item->price;
+        });
+
+        return  $total;
+    }
 }

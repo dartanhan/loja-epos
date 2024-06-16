@@ -9,7 +9,8 @@
 	===============================
 */
 html {
-  min-height: 100%; }
+  min-height: 100%;
+}
 
 body {
   color: #888ea8;
@@ -1736,7 +1737,8 @@ table .badge-success, table .badge-primary, table .badge-warning, table .badge-d
 .bg-primary {
   background-color: #1b55e2 !important;
   border-color: #1b55e2;
-  color: #fff; }
+  color: #fff;
+}
 
 .bg-success {
   background-color: #8dbf42 !important;
@@ -2066,21 +2068,5 @@ table .badge-success, table .badge-primary, table .badge-warning, table .badge-d
   position: initial; }
 
 .position-relative {
-  position: relative; }
-
-
-/*
-Usado no scripts.blade.php para pintar a TR em caso de atacado
-*/
-tbody tr:nth-child(odd) {
-    background-color: #f2f2f2; /* Cor para linhas ímpares */
-}
-
-tbody tr:nth-child(even) {
-    background-color: #ffffff; /* Cor para linhas pares */
-}
-
-.linha-vermelha {
-    background-color: #ffe6e6!important;
-    color: #ffffff;
+  position: relative;
 }

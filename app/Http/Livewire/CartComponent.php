@@ -46,7 +46,7 @@ class CartComponent extends Component {
      * @param $barcode
      */
     public function addToCart($barcode){
-      //  dd($barcode);
+        dd($barcode);
         $this->ScanearCode($barcode);
     }
 

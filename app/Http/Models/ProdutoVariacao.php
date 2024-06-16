@@ -20,4 +20,6 @@ class ProdutoVariacao extends Model
     function produtos(){
         return  $this->hasMany(ProdutoNew::class ,'id', 'products_id');
     }
+
+
 }
