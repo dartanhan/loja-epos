@@ -89,12 +89,65 @@
         text-decoration: underline;
     }
 
-    .scrollable-div {
-        max-height: 400px; /* Defina a altura máxima da div */
-        overflow-y: auto; /* Adicione o scroll vertical */
-        overflow-x: hidden; /* Oculte o scroll horizontal, se necessário */
+    /**
+    Div da table de produtos
+    */
+    .div-scroll-container {
+        height: 350px;
+        border: 1px solid #ccc;
+        /*overflow: auto; !* Permite a rolagem interna *!*/
+        /*scrollbar-width: none; !* Firefox *!*/
+        /*-ms-overflow-style: none; !* IE 10+ *!*/
     }
 
+    /*.div-scroll-container::-webkit-scrollbar {*/
+    /*    width: 0;*/
+    /*    height: 0;*/
+    /*}*/
+
+    .div-content {
+        height: 500px;
+    }
+
+    .cart-product-img {
+        width: 80px;
+        height: 80px;
+        background-size: cover;
+        background-position: center;
+        position: relative;
+        display: inline-block;
+        border-bottom-left-radius: 8px; /* Define o raio da borda inferior esquerda */
+        border-bottom-right-radius: 8px; /* Define o raio da borda inferior direita */
+    }
+
+    .cart-product-img-tip {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        color: #fff;
+        text-align: center;
+        padding: 3px 0;
+        font-size: 7px;
+        opacity: 0.8;
+        border-bottom-left-radius: 8px; /* Define o raio da borda inferior esquerda */
+        border-bottom-right-radius: 8px; /* Define o raio da borda inferior direita */
+    }
+
+    .text-left {
+        display: flex;
+        align-items: center;
+    }
+
+    .item-description {
+        display: inline-block;
+        vertical-align: middle;
+        padding-left: 20px;
+    }
+    /**
+    Fim div Produtos Table
+    */
 </style>
 
 

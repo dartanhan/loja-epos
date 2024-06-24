@@ -163,9 +163,10 @@ class SearchClient extends Component
             }
 
             //session()->flash('message', 'Cliente adicionado à venda com sucesso!');
-            $this->emit('clienteAtualizado');
+           // $this->emit('updateTotal');
             $this->emit('scan-ok','Cliente adicionado à venda com sucesso!');
-
+            $this->emit('atualizarCarrinho');
+            $this->emit('focus-input-search', null);
             $this->resetInputFields();
         }catch (Exception $e){
             session()->flash('error', $e->getMessage());
@@ -196,6 +197,7 @@ class SearchClient extends Component
 
     public function resetInputFields()
     {
+        $this->cpfTelefone = "";
         $this->nome = '';
         $this->cpf = '';
         $this->email = '';

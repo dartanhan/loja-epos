@@ -9,8 +9,9 @@
                     <input type="text" wire:model.defer="cpfTelefone"  name="searchClient" id="searchClient"
                            placeholder="Digite o CPF ou Telefone" maxlength="11"
                            wire:keydown.enter="searchClient"
-                           class="form-control form-control-sm input-altura-custom input-sapace-custom" autofocus inputmode="numeric" pattern="[0-9]*"
-                           oninput="this.value = this.value.replace(/[^0-9]/g, '');" style="padding: 0px 0px 0px 5px">
+                           class="form-control form-control-sm input-altura-custom input-sapace-custom"
+                           inputmode="numeric" pattern="[0-9]*"
+                           oninput="this.value = this.value.replace(/[^0-9]/g, '');" style="padding: 0px 0px 0px 5px" autofocus>
                     <div class="input-group-append">
                         <button type="button" class="btn btn-primary btn-sm" wire:click.defer="searchClient">
                             Pesquisar

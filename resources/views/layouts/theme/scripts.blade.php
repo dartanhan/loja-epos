@@ -37,34 +37,43 @@
         $("#searchProduct").autocomplete({
             minLength: 2,
             source: function(request, response) {
-                $.get('http://127.0.0.1/loja-epos/search', { term: request.term }, function(data) {
-                    //console.log(data);
-                    // Mapeie os dados para o formato que o autocomplete espera
-                    const formattedData = data.map(elemento => ({
-                        label: elemento.subcodigo +" - "+ elemento.produto_descricao + " - " + elemento.variacao,
-                        value: elemento.subcodigo +" - "+ elemento.produto_descricao + " - " + elemento.variacao, // Valor a ser inserido no input quando um item é selecionado
-                        subcodigo: elemento.subcodigo,
-                        //descricao: elemento.produto_descricao + " - " + elemento.variacao,
-                       // quantidade: elemento.quantidade,
-                    }));
+                if(request.term.trim()){
+                    $.get('http://127.0.0.1/loja-epos/search', { term: request.term }, function(data) {
+                       // console.log(data);
+                        // Mapeie os dados para o formato que o autocomplete espera
+                        const formattedData = data.map(elemento => ({
+                            label: elemento.subcodigo +" - "+ elemento.produto_descricao + " - " + elemento.variacao,
+                            value: elemento.subcodigo +" - "+ elemento.produto_descricao + " - " + elemento.variacao, // Valor a ser inserido no input quando um item é selecionado
+                            subcodigo: elemento.subcodigo,
+                            variacaoId: elemento.id,
+                            //descricao: elemento.produto_descricao + " - " + elemento.variacao,
+                            // quantidade: elemento.quantidade,
+                        }));
 
-                    // Verifique se há dados para exibir
-                    if (formattedData.length === 0) {
-                        formattedData.push({
-                            label: 'Nenhum produto encontrado',
-                            value: '', // Pode definir como vazio ou outro valor padrão
-                        });
-                    }
-
-                    // Chame a função response com os dados formatados
-                    response(formattedData);
-                });
+                        // Verifique se há dados para exibir
+                        if (formattedData.length === 0) {
+                            formattedData.push({
+                                label: 'Nenhum produto encontrado',
+                                value: '', // Pode definir como vazio ou outro valor padrão
+                            });
+                        }
+                        // Chame a função response com os dados formatados
+                        response(formattedData);
+                    });
+                }
             },
             select: function(event, ui) {
+                Livewire.emit('addToCart', ui.item.subcodigo,ui.item.variacaoId );
+                document.getElementById('searchProduct').focus();
+               // $('#openModalBtn').prop('disabled', false);
                 // Limpe o campo de pesquisa
-                $("#searchProduct").val('');
-                Livewire.emit('addToCart', ui.item.subcodigo);
-            }
+                // setTimeout(() => {
+                //     $("#searchProduct").val('');
+                //     //Adicona ao focus ao input, de pesqusia de produtos
+                //
+                // }, 500);
+           }
+
         });
     /****************
      * **************
@@ -143,6 +152,7 @@
 {{--     * Notificações disparadas pelo liveware--}}
 {{--     * */--}}
     document.addEventListener('DOMContentLoaded', function() {
+
         window.livewire.on('global-error', msg => {
             Swal.fire({
                 icon: "danger",
@@ -172,6 +182,15 @@
             noty(msg,colorRed,iconCartRemove);
         });
 
+        window.livewire.on('focus-input-search', msg => {
+            document.getElementById('searchProduct').focus();
+        });
+
+         window.livewire.on('refresh', msg => {
+             if(msg)
+                 window.location.reload(msg);
+         });
+
         // $('#taxa').on('change', function() {
         //     console.log($(this).val());
         //     window.livewire.emit('atualizarTaxa', $(this).val());
@@ -187,12 +206,16 @@
 
 
     document.addEventListener('livewire:load', function() {
+        //Adicona ao focus ao input, de pesqusia de produtos
+        //document.getElementById('searchProduct').focus();
+
         /**
          * CAREEGa o tooltip após o livewire atualizar
          * */
         activateTooltipsAndFormatting();
         window.livewire.hook('message.processed', (message, component) => {
             activateTooltipsAndFormatting();
+
         });
 
         /**
@@ -215,22 +238,32 @@
          * MODAL CORTINA
          * **/
         $('#openModalBtn').on('click', function () {
+
             $('#slideInModal').modal({
                 // backdrop: 'static',  // Disables closing the modal by clicking outside of it
                 keyboard: false      // Disables closing the modal with the ESC key
             }).modal('show');
+
+            //Adicona ao focus ao input, após abrir a modal
+            const searchClient = document.getElementById('searchClient');
+            setTimeout(() => {
+                searchClient.focus();
+            }, 500);
         });
 
         // Close the modal when the ESC key is pressed
         $(document).on('keydown', function (e) {
             if (e.key === 'Escape') {
                 $('#slideInModal').modal('hide');
+                $('#slideInModalFecharVenda').modal('hide');
+                focusInputSearch();
             }
         });
 
         // Prevent the modal from closing when the close button is clicked
         $('#closeModalBtn, #closeModalFooterBtn').on('click', function (e) {
             e.preventDefault();
+            focusInputSearch();
         });
 
         /**
@@ -240,9 +273,23 @@
            Livewire.emit('resetInputFields');
         });
 
+        $('#openModalBtnFecharVenda').on('click', function () {
+            $('#slideInModalFecharVenda').modal({
+                backdrop: 'static',  // Disables closing the modal by clicking outside of it
+                keyboard: false      // Disables closing the modal with the ESC key
+            }).modal('show');
 
+        });
     });
 
+    function focusInputSearch() {
+        console.log("foi");
+        //Adicona ao focus ao input, após abrir a modal
+        const searchProduct = document.getElementById('searchProduct');
+        setTimeout(() => {
+            searchProduct.focus();
+        }, 500);
+    }
 function Confirma(id, eventName, text) {
     Swal({
         title: 'CONFIRMAR',
@@ -255,9 +302,10 @@ function Confirma(id, eventName, text) {
         confirmButtonText: 'Remover'
     }).then(function(result) {
         if (result.value) {
-            console.log("eventName >> " + eventName,id);
-            window.livewire.emit(eventName, id)
-            Swal.close()
+           // console.log("eventName >> " + eventName,id);
+            window.livewire.emit(eventName, id);
+            //window.livewire.emit("clienteAtualizado");
+            Swal.close();
         }
 
     })

@@ -10,18 +10,6 @@ use Illuminate\Support\Facades\Session;
 
 trait CartTrait {
 
-
-
-    public function loadCartItems()
-    {
-        $this->items = Carts::with(['variations','clientes'])
-            ->where('user_id',  $this->userId )
-            ->where('status',  'ABERTO' )
-            ->get();
-
-        //dd($this->items);
-    }
-
     /**
      * Busca na base pelo cádigo do produto e adiciona no componente CART
      * @param $barcode
@@ -29,7 +17,7 @@ trait CartTrait {
      */
     public function ScanearCode($barcode, $cant = 1)
     {
-       // dd();
+
         $product = ProdutoVariacao::with('images','produtos')
             ->where("subcodigo",$barcode)
             ->where("status",1)
@@ -60,28 +48,38 @@ trait CartTrait {
                 $this->carts->quantidade = $cant;
                 $this->carts->imagem = count($product->images) > 0 ? $product->images[0]->path : "";
 
+                $this->carts->save();
+
+               $this->loadCartItems();
+
                 if (!$this->items->isEmpty()) {
                     if (!$this->items[0]->clientes->isEmpty()) {
                         $this->carts->cliente_id = $this->items[0]->clientes[0]->id;
                     }
                 }
 
-                $this->carts->save();
-
-                $this->total = $this->getTotalCartByUser(); //Cart::getTotal();
+                //$this->total = $this->getTotalCartByUser(); //Cart::getTotal();
                // $this->totalPixDebitoCredito = $product->valor_varejo;
                 //$this->itemsQuantity = Cart::getTotalQuantity();
 
                 //crio na session o codigo venda
-                if(Session::get('codigoVenda') == null){
-                    $codigoVenda = $this->gerarNumeroAleatorioKN();
-                    Session::put('codigoVenda', $codigoVenda);
-                    //Emite o codigo venda para o input na tela
-                   // $this->emit('codigo-venda',$codigoVenda);
-                }
+//                if(Session::get('codigoVenda') == null){
+//                    $codigoVenda = $this->gerarNumeroAleatorioKN();
+//                    Session::put('codigoVenda', $codigoVenda);
+//                    //Emite o codigo venda para o input na tela
+//                   // $this->emit('codigo-venda',$codigoVenda);
+//                }
+
+                $totais = $this->getTotalCartTraitByUser();
+
+                $this->total = $totais['total'];
+                $this->subTotal = $totais['subTotal'];
+                $this->taxa = $totais['taxa'];
+
+
 
                 $this->emit('scan-ok','Produto Adicionado!');
-               // $this->emitTo('cart-total','updateCart', $product->valor_varejo);
+
         }
     }
 
@@ -143,6 +141,7 @@ trait CartTrait {
 
                 if($product->update()){
                     $this->emit('scan-ok', "Produto atualizado com sucesso!");
+                    $this->emit('atualizarCarrinho');
                 }else{
                     $this->emit('global-error', "Não foi possivel atualizar o produto!");
                 }
@@ -153,10 +152,26 @@ trait CartTrait {
      * Passsa para o componente CART a solicitação para remover o item
      * @param $productId
      */
-    public function removeItem($productId)
+    public function removeCartItem($productId)
     {
-       //  $this->emitTo('cart-component', 'removeItem', $productId);
-        // $this->emitTo('cart-total','updateCart', $this->total);
+        $delete = Carts::find($productId)->delete();
+
+        if($delete){
+//            $totais = $this->getTotalCartTraitByUser();
+//            $this->total = $totais['total'];
+//            $this->subTotal = $totais['subTotal'];
+//            $this->taxa = $totais['taxa'];
+//
+//            $this->clienteName = $this->getClientCartTrait();
+//
+//            $this->items = $this->loadCartItems();
+
+            $this->emit('scan-remove', 'Produto removido!');
+            $this->emit('refresh', true);
+
+        }else{
+            $this->emit('global-error', "Não foi possivel remover o produto!");
+        }
     }
 
     /**
@@ -182,6 +197,7 @@ trait CartTrait {
 
             if($product->update()){
                 $this->emit('scan-ok', "Produto atualizado com sucesso!");
+                $this->emit('atualizarCarrinho');
             }else{
                 $this->emit('global-error', "Não foi possivel atualizar o produto!");
             }
@@ -208,18 +224,17 @@ trait CartTrait {
             $this->emitTo('cart-total','trashCartTotal', null);
     }
 
-    public function updateCartTrait($valorTotalPixDebitoCredito,$valorTotalCredito,$valorCaixaFechad){
-      //     dd("updateCartTrait");
-        Cart::session($this->userId)->getContent();
-
-        $this->total = Cart::getTotal();
-        $this->itemsQuantity = Cart::getTotalQuantity();
-        $this->totalPixDebitoCredito =  $valorTotalPixDebitoCredito;
-        $this->totalCredito =  $valorTotalCredito;
-
-        $this->emitTo('cart-component','updateCartAtacado', null);
-
-    }
+//    public function updateCartTrait($valorTotalPixDebitoCredito,$valorTotalCredito,$valorCaixaFechad){
+//      //     dd("updateCartTrait");
+//        Cart::session($this->userId)->getContent();
+//
+//        $this->total = Cart::getTotal();
+//        $this->itemsQuantity = Cart::getTotalQuantity();
+//        $this->totalPixDebitoCredito =  $valorTotalPixDebitoCredito;
+//        $this->totalCredito =  $valorTotalCredito;
+//
+//        $this->emitTo('cart-component','updateCartAtacado', null);
+//    }
 
 //public function updateQuantity($product, $cant = 1)
 //{
@@ -262,16 +277,56 @@ trait CartTrait {
 //}
 
 
-    public function getTotalCartByUser()
+    /***
+     * Retorna os totais e o frete
+    */
+    public function getTotalCartTraitByUser()
     {
         // Obtendo todos os itens do carrinho do usuário
-        $items = Carts::where('user_id', Auth::id())->where('status' , 'ABERTO')->get();
+        $items = Carts::with('clientes')->where('user_id', Auth::id())->where('status' , 'ABERTO')->get();
 
         // Calculando o total
-        $total = $items->sum(function ($item) {
+        $subTotal = $items->sum(function ($item) {
             return $item->quantidade * $item->price;
         });
 
-        return  $total;
+        $taxa = $items[0]->clientes[0]->taxa ?? null;
+
+        if ($taxa !== null) {
+            $taxa = $items[0]->clientes[0]->taxa;
+        } else {
+            $taxa = 0;
+        }
+
+        $total = $subTotal + $taxa;
+
+        return  array("total" => $total, "subTotal" => $subTotal, "taxa" => $taxa);
     }
+
+    public function getClientItemCartTrait(){
+        return   $this->cartItems = Carts::with(['variations','clientes'])
+            ->where('user_id', Auth::id())
+            ->where('status' , 'ABERTO')->get();
+
+     //   return !empty($carts['clientes']) && count($carts['clientes']) > 0 ? $carts['clientes'][0]->nome : null;
+      // return $carts ?: ['clientes' => []];
+    }
+
+
+    public function loadCartItems()
+    {
+        $this->items = Carts::with(['variations','clientes'])
+            ->where('user_id',  $this->userId )
+            ->where('status',  'ABERTO' )
+            ->get();
+
+       // dd($this->items);
+        $totais = $this->getTotalCartTraitByUser();
+        $this->total = $totais['total'];
+        $this->subTotal = $totais['subTotal'];
+        $this->taxa = $totais['taxa'];
+
+        $this->clienteName = $this->getClientCartTrait();
+    }
+
 }

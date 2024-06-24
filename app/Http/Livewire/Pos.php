@@ -16,27 +16,16 @@ class Pos extends Component
     public $items = [];
     public $message = 'Hello, Livewire!';
     public $searchTerm;
-    public $products;
-    public $total, $itemsQuantity, $change,$userId,$barcode,$client;
+    public $products,$clienteName;
+    public $total,$subTotal,$taxa,$itemsQuantity, $change,$userId,$barcode,$client;
 
     public function mount(){
        $this->userId = Auth::id();
-     //  $this->loadCartItems();
+       $this->loadCartItems();
     }
-
-//    public function loadCartItems()
-//    {
-//      $this->items = Carts::with(['variations','clientes'])
-//          ->where('user_id',  $this->userId )
-//          ->where('status',  'ABERTO' )
-//          ->get();
-//
-//      //dd($this->items);
-//    }
 
     public function render()
     {
-       $this->loadCartItems();
 
         return view('livewire.pos2')->extends('layouts.theme.app')->section('content');
     }
@@ -68,7 +57,7 @@ class Pos extends Component
      *  custom.js
      */
     public function addToCart($barcode){
-        //dd($barcode);
+       //dd($barcode);
         $this->ScanearCode($barcode);
     }
 
@@ -98,15 +87,7 @@ class Pos extends Component
     */
     public function removeItem($productId)
     {
-        $delete = Carts::find($productId)->delete();
-
-        if($delete){
-            $this->emit('scan-remove', 'Produto removido!');
-            $this->emit('clienteAtualizado');
-        }else{
-            $this->emit('global-error', "Não foi possivel remover o produto!");
-        }
-
+        $this->removeCartItem($productId);
     }
 
     public function decrementQuantity(int $product_id, $cant = 1)
@@ -129,7 +110,12 @@ class Pos extends Component
         //'saveSale'   => 'saveSale',
         'refresh' => '$refresh',
         'scan-code-byid' => 'ScanCodeById',
-        'addToCart' => 'addToCart'
+        'addToCart' => 'addToCart',
+        'atualizarCarrinho'=>'loadCartItems',
     ];
 
-}
+    public function getTotalCartByUser(){
+        return $this->getTotalCartTraitByUser();
+    }
+
+  }

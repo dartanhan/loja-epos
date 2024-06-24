@@ -5,7 +5,7 @@ use App\Http\Controllers\Auth\ConfirmablePasswordController;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\EmailVerificationPromptController;
 use App\Http\Controllers\Auth\VerifyEmailController;
-use App\Http\Livewire\Pos;
+use App\Http\Livewire\CartComponent;
 use App\Http\Livewire\ProductSearch;
 use Illuminate\Support\Facades\Route;
 
@@ -52,12 +52,13 @@ Route::middleware('auth')->group(function () {
         return view('dashboard');
     })->middleware(['auth'])->name('dashboard');
 
-    Route::get('/search', [Pos::class, 'search']);
+    Route::get('/search', [CartComponent::class, 'search']);
 
   /*  Route::get('/home', function () {
         return view('home');
     })->middleware(['auth'])->name('home');*/
 
-    Route::get('/home', Pos::class)->name('home');
+    //Route::get('/home', Pos::class)->name('home');
+    Route::get('/home', CartComponent::class)->name('home');
     Route::get('/search-products', [ProductSearch::class, 'search']);
 });

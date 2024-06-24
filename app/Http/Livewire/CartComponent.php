@@ -3,234 +3,139 @@
 
 namespace App\Http\Livewire;
 
+use App\Http\Models\Carts;
 use App\Http\Models\VendaProdutos;
 use App\Http\Models\VendasProdutos;
 use App\Http\Models\Vendas;
 use App\Http\Models\ProdutoVariacao;
 use App\Traits\CartTrait;
 use Darryldecode\Cart\Facades\CartFacade as Cart;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Livewire\Component;
 
 class CartComponent extends Component {
+
     use CartTrait;
+    public $searchTerm;
+    public $products = [];
     public $cartItems = [];
-    public $itemsQuantity, $change,$userId,$barcode,$total,$vendas,$vendasProdutos;
-    public $number = 0;
-    protected $listeners = ['addToCart' => 'addToCart',
-                            'removeItem' => 'removeItem',
-                            'updateCart'=>'updateCart',
-                            'createSale'   => 'createSale',
-                            'saveSale' => 'saveSale',
-                            'updateCartAtacado' => 'updateCartAtacado'
-    ];
+    public $userId,$barcode;
 
+    protected $listeners = ['atualizarCarrinho' => 'render','addToCart' => 'addToCart'];
 
-    /**
-     * Monta o ID do user para o compomente do carrinho CART
-     * @param Vendas $vendas
-     * @param VendaProdutos $vendasProdutos
-     */
-    public function mount(Vendas $vendas, VendaProdutos $vendasProdutos){
+    public function mount()
+    {
         $this->userId = Auth::id();
+        $this->cartItems =  Carts::with(['variations','clientes'])
+            ->where('user_id',  $this->userId )
+            ->where('status',  'ABERTO' )
+            ->get();
 
-        $this->vendas = $vendas;
-        $this->vendasProdutos = $vendasProdutos;
-
-        $this->emit('codigo-venda', Session::get('codigoVenda'));
     }
 
-    /**
-     *Busaca o prduto para venda no Carrinho
-     * @param $barcode
-     */
-    public function addToCart($barcode){
-        dd($barcode);
-        $this->ScanearCode($barcode);
-    }
-
-    /**
-     * Exibe o compoenente CAR na tela
-     */
-    public function render(){
-        Cart::session($this->userId);
-
-        return view('livewire.cart');
-    }
-
-    /**
-     * Atualiza a quantidade de item no carrinho
-     * @param $productId
-     */
-    public function updateQty(ProdutoVariacao $product, $cant = 1, $qtdCart)
+    public function decrementQuantity(int $product_id, $cant = 1)
     {
-       // dd($product->id , $cant, $qtdCart);
-
-        if ($cant > $qtdCart)
-           // $this->removeItem($product->id);
-            $this->IncreaseQuantity($product,$cant);
-        else
-           // $this->UpdateQuantity($product, $cant);
-            $this->decreaseQuantity($product, $cant);
-
-        $this->emit('pinta-linha-atacado', null);
+        $this->decreaseQuantity($product_id, $cant);
     }
 
-    /**
-     * Remove o item no carrinho
-     * @param $productId
-     */
-    public function removeItem($productId)
+    public function incrementQuantity(int $product_id, $cant = 1)
     {
-       // dd(Cart::session($this->userId)->getContent());
-        Cart::session($this->userId)->remove($productId);
-        Cart::session($this->userId)->getContent();
-
-        $this->total = Cart::getTotal();
-        $this->itemsQuantity = Cart::getTotalQuantity();
-
-        $this->emit('scan-remove', 'Produto removido!');
-        $this->emitTo('cart-total','updateCart', null);
+        //dd($product_id);
+        $this->IncreaseQuantity($product_id, $cant);
     }
 
-    /**
-    * Função que realiza fechamento da venda
-     */
-    public function createSale()
+//    public function updatedSearchTerm()
+//    {
+//        $this->products = ProdutoVariacao::with('images')->where(function($query) {
+//            $query->where('variacao', 'like', '%' . $this->searchTerm . '%')
+//                ->orWhere('subcodigo', 'like', '%' . $this->searchTerm . '%')
+//                ->orWhere('loja_produtos_new.descricao', 'like', '%' . $this->searchTerm . '%');
+//        })->where('quantidade', '>', 0)
+//            ->join('loja_produtos_new', 'loja_produtos_new.id', '=', 'loja_produtos_variacao.products_id')
+//            ->select('loja_produtos_variacao.*', 'loja_produtos_new.descricao as produto_descricao',  'loja_produtos_new.categoria_id', 'loja_produtos_new.fornecedor_id')
+//            ->where('loja_produtos_variacao.status',true)
+//            ->orderBy('variacao', 'asc')->take(10)->get();
+//
+//    }
+
+    public function search(Request $request)
     {
-        $data = "";
-            // Dados do Carrinho que deseja enviar para o frontend
-        $data = Cart::session($this->userId)->getContent();
+        $this->searchTerm = $request->input('term');
 
-        $cart = [];
-        $totalPDC = 0;
-        $totalCRED = 0;
+        $this->products = ProdutoVariacao::with('images')->where(function($query) {
+            $query->where('variacao', 'like', '%' . $this->searchTerm . '%')
+                ->orWhere('subcodigo', 'like', '%' . $this->searchTerm . '%')
+                ->orWhere('loja_produtos_new.descricao', 'like', '%' . $this->searchTerm . '%');
+        })->where('quantidade', '>', 0)
+            ->join('loja_produtos_new', 'loja_produtos_new.id', '=', 'loja_produtos_variacao.products_id')
+            ->select('loja_produtos_variacao.*', 'loja_produtos_new.descricao as produto_descricao',  'loja_produtos_new.categoria_id', 'loja_produtos_new.fornecedor_id')
+            ->where('loja_produtos_variacao.status',true)
+            ->orderBy('variacao', 'asc')->take(10)->get();
 
-        foreach ($data as $key => $value){
-            //dinheiro
-            $total = number_format($value->quantity * $value->price, 2, '.', ',');
-            //pix,debito,crédito
-            $totalPixDebitoCredito = number_format($value->quantity * $value->associatedModel->valor_cartao_pix, 2, '.', ',');
-            //Crédito
-            $totalCredito = number_format($value->quantity * $value->associatedModel->valor_parcelado, 2, '.', ',');
+        return response()->json($this->products);
+    }
 
-            //Soma os totais
-            $totalPDC += $totalPixDebitoCredito;
-            $totalCRED += $totalCredito;
+    public function addToCart($barcode,$productVariationId)
+    {
+        //dd($barcode,$productVariationId);
+        //$cartItem = Carts::where('product_id', $productId)->first();
+        $cartItem = Carts::with('clientes')
+            ->where('user_id', Auth::id())
+            ->where('produto_variation_id', $productVariationId)
+            ->where('status' , 'ABERTO')->first();
 
-            //cria o array de devolução apra mandar para a API
-            $cart[$key] = [
-                "total" => $total,
-                "totalPDC" => $totalPixDebitoCredito,
-                "totalCredito" => $totalCredito,
-                "variacao_id" =>  $value->id,
-                "quantity" =>  $value->quantity,
-                "subcodigo"=> (int)$value->associatedModel->subcodigo
+        if ($cartItem) {
+            $cartItem->increment('quantidade');
+        } else {
+            //dd($cartItem);
+            $cartItem = ProdutoVariacao::with('images','produtos')
+                ->where("subcodigo",$barcode)
+                ->where("status",true)
+                ->first();
+
+            $carts=[
+                'user_id' => $this->userId,
+                'produto_variation_id' => $cartItem->id,
+                'name' => $cartItem->subcodigo ." - ".$cartItem['produtos'][0]->descricao ." - " . $cartItem->variacao,
+                'price' => $cartItem->valor_varejo,
+                'quantidade' => 1,
+                'imagem' => count($cartItem->images) > 0 ? $cartItem->images[0]->path : ""
             ];
-            $cart['totalGeralDinner'] = number_format(Cart::getTotal(), 2, '.', ',');
-            $cart['totalGeralPDC'] = number_format($totalPDC, 2, '.', ',');
-            $cart['totalGeralCredito'] = number_format($totalCRED, 2, '.', ',');
-            $cart['totalQuantity'] = Cart::getTotalQuantity();
-        }
-        // Emitir evento Livewire com os dados para o JS
-        $this->emit('informacoesAtualizadas', $cart);
 
+            Carts::create($carts);
+        }
+
+        $this->cartItems = $this->getClientItemCartTrait();
+
+        $this->emit('atualizarCarrinho');
+        $this->barcode = "";
     }
 
-    /**
-     * Salva a venda
-     * @param $codeSale
-     * @param $totalVenda
-     * @param $tipoVenda
-     * @param array $dataArray
-     */
-    public function saveSale($codeSale,$totalVenda, $tipoVenda){
-        $data = Cart::session($this->userId)->getContent();
-      // dd($data,$tipoVenda);
-        $total = 0;
-        $price =0;
+    public function removeFromCart($cartItemId)
+    {
+        $cartItem = Carts::find($cartItemId);
 
-        //$codeSale = "KN".rand(0,999999);
-        //cria a venda
-        $sale = $this->vendas->create(["codigo_venda" =>  $codeSale,//$dados["codigo_venda"],
-            "loja_id" =>  1,//$dados["loja_id"],
-            "valor_total" =>  $totalVenda,//$dados["valor_total"],
-            "usuario_id" =>  $this->userId,//isset($dados["usuario_id"]) ? $dados["usuario_id"] : 3,
-            "cliente_id" =>  $this->userId,//$dados["clienteModel"]["id"] !== 0 ? $dados["clienteModel"]["id"] : null,
-            "tipo_venda_id" => $this->userId]); //$dados["tipoEntregaCliente"]]);
-
-        //Salva itens da venda
-        if ($sale->exists) {
-            foreach ($data as $key => $value){
-                switch ($tipoVenda) {
-                    case 'F1':
-                        //$total = $value->quantity * $value->price;
-                        $price = $value->price;
-                        break;
-                    case 'F2':
-                        $price = $value->associatedModel->valor_cartao_pix;
-                        break;
-                    case 'F3':
-                        $price = $value->associatedModel->valor_parcelado;
-                        break;
-                }
-
-                $this->vendasProdutos = new VendaProdutos();
-                $this->vendasProdutos->venda_id = $sale->id;
-                $this->vendasProdutos->codigo_produto = $value->associatedModel->subcodigo;//$dados["produtos"][$i]["codigo_produto"];
-                $this->vendasProdutos->descricao = $value->associatedModel->produtos[0]->descricao ." - ". $value->associatedModel->variacao;//$dados["produtos"][$i]["descricao"];
-                $this->vendasProdutos->valor_produto = $price;//$dados["produtos"][$i]["valor_produto"];
-                $this->vendasProdutos->quantidade = $value->quantity;//$dados["produtos"][$i]["quantidade"];
-                $this->vendasProdutos->troca = 0; //$dados["produtos"][$i]["troca"];
-                $this->vendasProdutos->fornecedor_id = $value->associatedModel->fornecedor; //$dados["produtos"][$i]["fornecedor_id"];
-                $this->vendasProdutos->categoria_id = $value->associatedModel->produtos[0]->categoria_id;//$dados["produtos"][$i]["categoria_id"];
-
-                $saveSale = $this->vendasProdutos->save();
-
-                //realiza a baixa do produto
-                if($saveSale){
-                 //   $id = $dados["produtos"][$i]["id"]; // id do produto
-                 //   $sub_codigo = $dados["produtos"][$i]["codigo_produto"]; // id do produto
-
-
-                }
-
-            }
-            $this->trashCart();
+        if ($cartItem->quantidade > 1) {
+            $cartItem->decrement('quantidade');
+        } else {
+            $cartItem->delete();
         }
 
+        $this->barcode = "";
+        $this->cartItems = $this->getClientItemCartTrait();
+        $this->emit('scan-remove', 'Item removido com sucesso!');
+        $this->emit('focus-input-search', null);
+        $this->emit('atualizarCarrinho');
+
+        if(count($this->cartItems) === 0)
+            $this->emit('refresh', true);
     }
 
-    /**
-    *
-     */
-    function updateCartAtacado(){
-       // dd("updateCartAtacado");
-
-        foreach (Cart::session($this->userId)->getContent() as $key => $item) {
-            // dd($item->id);
-            //$product = Cart::get($item->id);
-
-            /**
-             * Regra do atacado
-             */
-            $price = $item->associatedModel->valor_varejo;
-            if(count(Cart::session($this->userId)->getContent()) >=10){
-                $price = $item->associatedModel->valor_atacado;
-            }
-            $products = array(
-                'id' => $item->id,
-                'name' => $item->name,
-                'price' => $price,
-                'quantity' => $item->quantity,
-                'attributes' => [],
-                'associatedModel' => $item->associatedModel
-            );
-            Cart::remove($item->id);
-            Cart::session($this->userId)->add($products);
-            $this->emit('pinta-linha-atacado', null);
-        }
-
+    public function render()
+    {
+        //return view('livewire.cart');
+        return view('livewire.cart')->extends('layouts.theme.app')->section('content');
     }
 }
