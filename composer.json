@@ -14,8 +14,7 @@
         "laravel/sanctum": "^2.11",
         "laravel/tinker": "^2.5",
         "livewire/livewire": "^2.12",
-      "ext-intl": "*",
-        "ext-http": "*"
+      "ext-intl": "*"
     },
     "require-dev": {
         "facade/ignition": "^2.5",
