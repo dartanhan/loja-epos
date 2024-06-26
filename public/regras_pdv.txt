@@ -1,0 +1,29 @@
+PRESENCIAL
+
+	Botões de gerar link escondido e exibir ao selecionar opção online
+
+	ao abrir tela exibe o combo tipo venda com opção presencial setado com default -> ok
+		Finalizar venda com baixa de estoque (finalizado)
+		Deixar card de forma de pagamento
+		suprimir forma de entrega
+		Gerar link suprimir
+
+	ao selecionar opção dinheiro exibir input com opção de digitar o valor recebido e exibir troco
+	ter opção de pagamento duplo no forma de pagamento com opção de digitar os valores em todas as formas de pagamento
+
+ONLINE
+	tratar as taxas de entrega , só tem taxa de entrega para motoboy da loja
+	só tem taxa para opção online
+	gerar link de venda botão verde com status em aberto para exibir na tela menu (Vendas)
+    exibir combo de forma de entrega
+
+
+ *Colocar opção de confirmação de finalizar venda e gerar link
+
+
+
+Criar Menu (Vendas) exibir as vendas do dia com filtro
+		Com status finalizado só poderá ter a opção de cancelar e alterar forma de pagamento
+
+
+

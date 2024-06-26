@@ -251,7 +251,10 @@
                                 @livewire('sale')
                             </div>
                             <div class="card-footer text-right">
-                                <button type="button" class="btn btn-outline-danger btn-sm text-monospace d-inline" id="closeModalFooterBtn"
+                                <button type="button" class="btn btn-success btn-sm text-monospace" disabled>Gerar Link</button>
+                                <button type="button" class="btn btn-primary btn-sm text-monospace">Finalizar Venda</button>
+
+                                <button type="button" class="btn btn-outline-danger btn-sm text-monospace" id="closeModalFooterBtn"
                                         data-bs-dismiss="modal" title="Fechar Janela" data-toggle="tooltip">
                                     Fechar (ESC)
                                 </button>

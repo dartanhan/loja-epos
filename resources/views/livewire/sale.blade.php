@@ -6,7 +6,39 @@
         overflow-y: auto; /* Adiciona scroll vertical se necessário */
         }
     </style>
+
     <div class="container">
+        <div class="row">
+            <!--Tipo de Venda -->
+            <div class="col-md-4">
+                <div class="card mb-2">
+                    @livewire('tipo-venda')
+                </div>
+            </div>
+
+            <!-- Forma de pagamento -->
+            <div class="col-md-4">
+                <div class="card mb-2">
+                    <div class="card-header text-monospace text-center bg-primary text-white p-2">
+                        Forma de Pagamento
+                    </div>
+                    <div class="card-body text-monospace">
+                        <select class="form-select mb-3">
+                            <option selected>Selecione uma opção ?</option>
+                            <option value="1">Dinheiro</option>
+                            <option value="2">Cartão de Crédito</option>
+                            <option value="3">Cartão de Débito</option>
+                            <option value="4">PIX</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Forma de entrega -->
+            <div class="col-md-4">
+                   @livewire('forma-entrega')
+            </div>
+        </div>
         <!-- Lista de produtos com imagens -->
         <div class="card mb-3">
             <div class="card-header">
@@ -50,38 +82,5 @@
             </div>
         </div>
 
-        <!-- Forma de pagamento -->
-        <div class="card">
-            <div class="card-header">
-            Forma de Pagamento
-            </div>
-            <div class="card-body">
-            <select class="form-select mb-3">
-                <option selected>Selecione a forma de pagamento...</option>
-                <option value="1">Dinheiro</option>
-                <option value="2">Cartão de Crédito</option>
-                <option value="3">Cartão de Débito</option>
-                <option value="4">PIX</option>
-            </select>
-            <button type="button" class="btn btn-primary">Finalizar Venda</button>
-            </div>
-        </div>
-
-        <!-- Forma de entrega -->
-        <div class="card">
-            <div class="card-header">
-            Forma de Entrega
-            </div>
-            <div class="card-body">
-            <select class="form-select mb-3">
-                <option selected>Selecione a forma de entrega...</option>
-                <option value="moto-taxi">Moto Táxi</option>
-                <option value="moto-uber">Moto Uber</option>
-                <option value="entrega-rapida">Entrega Rápida</option>
-                <option value="retirada-local">Retirada no Local</option>
-            </select>
-            <button type="button" class="btn btn-primary">Finalizar Venda</button>
-            </div>
-        </div>
     </div>
 </div>
