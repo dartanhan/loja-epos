@@ -235,7 +235,7 @@
             </div>
         </div>
     </div>
-
+{{$this->geraLink}}
     <!-- Modal -->
     <div class="modal fade top" id="slideInModalFecharVenda" tabindex="-1" aria-labelledby="slideInModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">

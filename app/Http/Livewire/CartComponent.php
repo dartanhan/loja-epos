@@ -32,7 +32,6 @@ class CartComponent extends Component {
             ->where('user_id',  $this->userId )
             ->where('status',  'ABERTO' )
             ->get();
-
     }
 
     public function decrementQuantity(int $product_id, $cant = 1)

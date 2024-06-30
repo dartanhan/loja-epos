@@ -9,7 +9,7 @@ class TipoVenda extends Component
 {
     public $items;
     public $selectedItem;
-
+    
     public function mount(){
         $this->items = TipoVendas::orderby("descricao","asc")->get();
 

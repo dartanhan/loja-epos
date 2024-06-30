@@ -9,6 +9,7 @@ class FormaEntrega extends Component
 {
     public $items;
     public $showEntrega = false;
+   
 
     protected $listeners = ['tipoVendaUpdated' => 'handleTipoVendaUpdated'];
 
