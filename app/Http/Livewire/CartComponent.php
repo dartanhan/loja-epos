@@ -134,7 +134,7 @@ class CartComponent extends Component {
 
     public function render()
     {
-        //return view('livewire.cart');
-        return view('livewire.cart')->extends('layouts.theme.app')->section('content');
+        return view('livewire.cart')->extends('layouts.theme.app2')->section('content');
+       // return view('livewire.cart')->extends('layouts.theme.app')->section('content');
     }
 }

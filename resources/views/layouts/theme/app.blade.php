@@ -37,8 +37,8 @@
     <div class="search-overlay"></div>
 
     <!--  BEGIN SIDEBAR  -->
-@include('layouts.theme.sidebar')
-<!--  END SIDEBAR  -->
+    @include('layouts.theme.sidebar')
+    <!--  END SIDEBAR  -->
 
     <!--  BEGIN CONTENT AREA  -->
     <div id="content" class="main-content">
