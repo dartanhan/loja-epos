@@ -1,6 +1,8 @@
 <script src="{{URL::asset('assets/js/libs/jquery-3.1.1.min.js') }}"></script>
-<script src="{{URL::asset('bootstrap/js/popper.min.js') }}"></script>
-<script src="{{URL::asset('bootstrap/js/bootstrap.min.js') }}"></script>
+
+<script src="{{URL::asset('assets/bootstrap/js/bootstrap.min.js') }}"></script>
+<script src="{{URL::asset('assets/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+
 <script src="{{URL::asset('assets/js/loader.js') }}"></script>
 <script src="{{URL::asset('plugins/sweetalerts/sweetalert2.min.js')}}"></script>
 <script src="{{URL::asset('plugins/jquery-ui/jquery-ui.min.js')}}"></script>
@@ -717,4 +719,4 @@ let defaultMessageDialog  = function(html = 'titulo', icon = 'warning', position
 // })
 </script>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+

@@ -6,7 +6,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no">
         <title>@yield('title', 'SISTEMA KNPOS')</title>
         <link rel="icon" type="image/x-icon" href="assets/img/favicon.ico" />
-        <link href="https://fonts.googleapis.com/css?family=Poppins:400,500,600,700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
         <!-- BEGIN GLOBAL MANDATORY STYLES -->
         @include('layouts.theme.styles')
         <!-- END PAGE LEVEL PLUGINS/CUSTOM STYLES -->
@@ -25,7 +25,7 @@
 
         <div class="d-flex" id="wrapper">
 
-            @include('layouts.theme.sidebar')
+            <!--@include('layouts.theme.sidebar')-->
 
             <!-- Page Content -->
             <div class="container mt-3 p-3">

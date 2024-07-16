@@ -1,8 +1,7 @@
 
 <link href="{{ asset('assets/css/loader.css') }}" rel="stylesheet" type="text/css" />
-<link href="{{ asset('bootstrap/css/bootstrap.css') }}" rel="stylesheet" type="text/css" />
-<link href="{{ asset('assets/css/main.css') }}" rel="stylesheet" type="text/css" />
-<link href="{{ asset('assets/css/structure.css') }}" rel="stylesheet" type="text/css" class="structure" />
+<link href="{{ asset('assets/bootstrap/css/bootstrap.css') }}" rel="stylesheet" type="text/css" />
+
 <link href="{{URL::asset('plugins/sweetalerts/sweetalert.css')}}" rel="stylesheet" />
 <link href="{{ asset('plugins/notification/snackbar/snackbar.min.css') }}" rel="stylesheet" type="text/css" />
 <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
@@ -10,7 +9,16 @@
 
 <style>
     *{
-     font-family: "Poppins", sans-serif;
+        font-family: "Poppins", sans-serif;
+    }
+    body{
+        color: #888ea8;
+        height: 100%;
+        font-size: 0.875rem;
+        background: #f1f2f3;
+        overflow-x: hidden;
+        overflow-y: auto;
+        letter-spacing: 0.0312rem;
     }
     aside {
         display: none !important;
@@ -101,7 +109,7 @@
     }
 
     .cart-product-img {
-        width: 80px;
+        width: 82px;
         height: 80px;
         background-size: cover;
         background-position: center;
@@ -109,6 +117,7 @@
         display: inline-block;
         border-bottom-left-radius: 8px; /* Define o raio da borda inferior esquerda */
         border-bottom-right-radius: 8px; /* Define o raio da borda inferior direita */
+       /* background-color: rgba(0, 0, 0, 0.2);*/
     }
 
     .cart-product-img-tip {
@@ -136,34 +145,53 @@
         vertical-align: middle;
         padding-left: 20px;
     }
+
+    /*  Table   */
+    .table > tbody > tr > td {
+        vertical-align: middle;
+        color: #515365;
+        font-size: 13px;
+        letter-spacing: 1px; 
+    }
     /**
     Fim div Produtos Table
     */
 
+    /*
+    ======================
+        Footer-wrapper
+    ======================
+    */
+    .footer-wrapper {
+        padding: 10px 20px 10px 20px;
+        display: inline-block;
+        background: transparent;
+        font-weight: 600;
+        font-size: 12px;
+        width: 100%;
+        border-top-left-radius: 6px;
+        display: flex;
+        justify-content: space-between;
+     }
+
+    .main-container.sidebar-closed .footer-wrapper {
+    border-radius: 0; }
+
+    .footer-wrapper .footer-section p {
+        margin-bottom: 0;
+        color: #515365;
+        font-size: 13px;
+        letter-spacing: 1px; 
+    }
+    .footer-wrapper .footer-section p a {
+        color: #515365; }
+
+    .footer-wrapper .footer-section svg {
+        color: #e7515a;
+        fill: rgba(231, 81, 90, 0.419608);
+        width: 15px;
+        height: 15px;
+        vertical-align: text-top; 
+    }
 
 </style>
-
-
-{{--<link href="{{ asset('plugins/flatpickr/flatpickr.dark.css') }}" rel="stylesheet" type="text/css" />--}}
-
-<style>
-    /*.modal.modal-fullscreen .modal-dialog {*/
-    /*    width: 100vw;*/
-    /*    height: 100vh;*/
-    /*    margin: 0;*/
-    /*    padding: 0;*/
-    /*    max-width: none;*/
-    /*}*/
-
-    /*.modal.modal-fullscreen .modal-content {*/
-    /*    height: auto;*/
-    /*    height: 100vh;*/
-    /*    border-radius: 0;*/
-    /*    border: none;*/
-    /*}*/
-
-    /*.modal.modal-fullscreen .modal-body {*/
-    /*    overflow-y: auto;*/
-    /*}*/
-</style>
-

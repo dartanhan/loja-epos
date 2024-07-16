@@ -12,7 +12,7 @@
                         <div class="table-responsive flex-grow-1 div-scroll-container">
                             <div class="content">
                                 <table class="table table-hover table-striped text-center table-responsive" style="padding: 2px">
-                                    <thead class="thead-dark">
+                                    <thead class="table-dark">
                                     <tr>
                                         <th class="" style="width: 650px" colspan="2">Descrição</th>
                                         <th class="" style="width: 120px">Valor</th>
@@ -34,7 +34,7 @@
                                             <td class="text-left">
                                             @if(!empty($item->imagem))
                                                     <span class="cart-product-img"
-                                                        style="background-image: url('{{ asset('storage/'.$item->imagem) }}'); opacity: 1;"
+                                                        style="background-image: url('{{ asset('../../api-loja/public/storage/'.$item->imagem) }}'); opacity: 1;"
                                                         data-toggle="tooltip" data-placement="top" title="{{ $item->name }}">
                                                         @if($item->quantidade == $item->variations[0]->quantidade)
                                                             <span class="cart-product-img-tip">Último Disponível</span>
@@ -42,7 +42,7 @@
                                                     </span>
                                                 @else
                                                     <span class="cart-product-img"
-                                                        style="background-image: url('https://via.placeholder.com/60'); opacity: 1;"
+                                                        style="background-image: url('{{ asset('assets/img/no-image.png')}}'); opacity: 1;"
                                                         data-toggle="tooltip" data-placement="top" title="{{ $item->name }}">
                                                         @if($item->quantidade == $item->variations[0]->quantidade)
                                                             <span class="cart-product-img-tip">Último Disponível</span>
@@ -77,15 +77,9 @@
                                                        wire:click.defer="decrementQuantity({{ $item->produto_variation_id }})">
                                                         <i class="fa fa-minus-circle" aria-hidden="true"></i>
                                                     </a>
-                                                @else
-                                                    <i class="fa fa-minus-circle text-hide" aria-hidden="true"></i>
                                                 @endif
                                                 <span class="col-d-1">{{ $item->quantidade }}</span>
-                                                @if($item->quantidade == $item->variations[0]->quantidade)
-                                                    <span title="Estoque máximo atingido" data-toggle="tooltip" class="disabled">
-                                                                    <i class="fa fa-plus-circle text-hide" aria-hidden="true" ></i>
-                                                                </span>
-                                                @else
+                                                @if($item->quantidade < $item->variations[0]->quantidade)
                                                     <a href="#" title="Adicionar Item" data-toggle="tooltip"  class="text-decoration-none"
                                                        wire:click.defer="incrementQuantity({{ $item->produto_variation_id }})">
                                                         <i class="fa fa-plus-circle " aria-hidden="true"></i>
@@ -111,7 +105,7 @@
             <div  style="flex: 1;">
                 <div class="card d-flex flex-column" >
                     <div class="card-header text-center text-monospace bg-primary text-white">
-                        <h5>Cliente</h5>
+                        <h6>Cliente</h6>
                     </div>
                     <div class="card-body text-center">
                         @if($cartItems->isNotEmpty() && optional($cartItems->first()->clientes)->isNotEmpty())
@@ -136,7 +130,7 @@
                 </div>
                 <div class="card" style="height: 200px">
                     <div class="card-header text-center bg-primary text-white">
-                        <h5>Totais</h5>
+                        <h6>Totais</h6>
                     </div>
                     <div class="card-body">
                         <div class="d-flex justify-content-between mb-2">
@@ -270,5 +264,5 @@
     <link rel="stylesheet" href="{{ URL::asset('css/app.css') }}" />
     <link rel="stylesheet" href="{{ URL::asset('css/modal.css') }}" />
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
 </div>
