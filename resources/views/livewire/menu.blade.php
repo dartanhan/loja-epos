@@ -5,7 +5,6 @@
 
             <ul class="menu-categories">
 
-
                 <li class="active">
                     <a href="{{url('home')}}" class="menu-toggle" data-active="true">
                         <div class="base-menu">

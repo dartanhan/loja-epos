@@ -197,7 +197,7 @@
     <div class="modal fade right" id="slideInModal" tabindex="-1" aria-labelledby="slideInModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header bg-primary">
+                <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title" id="slideInModalLabel">Cliente</h5>
                     <button type="button" class="btn-close" id="closeModalBtn" aria-label="Close"></button>
                 </div>
@@ -220,7 +220,7 @@
     <div class="modal fade top" id="slideInModalFecharVenda" tabindex="-1" aria-labelledby="slideInModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <div class="modal-header bg-primary">
+                <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title text-monospace" id="slideInModalLabel">Fechamento de Venda</h5>
                     <button type="button" class="btn-close" id="closeModalBtn" aria-label="Close"></button>
                 </div>
@@ -250,7 +250,7 @@
     <div class="modal fade left" id="openMenuModal" tabindex="-1" aria-labelledby="slideInModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header bg-primary">
+                <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title" id="slideInModalLabel">Menu</h5>
                     <button type="button" class="btn-close" id="closeMenuModal" aria-label="Close"></button>
                 </div>

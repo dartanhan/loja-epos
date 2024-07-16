@@ -41,7 +41,7 @@
         </div>
         <!-- Lista de produtos com imagens -->
         <div class="card mb-3">
-            <div class="card-header">
+            <div class="card-header bg-primary text-white">
             Itens do Pedido
             </div>
             <div class="card-body item-list">
@@ -74,11 +74,11 @@
 
         <!-- Total da venda -->
         <div class="card mb-3">
-            <div class="card-header">
-            Total da Venda
+            <div class="card-header bg-primary text-white">
+                Total da Venda
             </div>
             <div class="card-body">
-            <h5 class="card-title">R$ 100,00</h5>
+                <h5 class="card-title"> R$ {{number_format($cartTotal['total'] ,2,",",".")}} </h5>
             </div>
         </div>
 
