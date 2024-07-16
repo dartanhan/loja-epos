@@ -231,7 +231,9 @@
 /*}*/
 
 
-
+/**
+Cliente
+*/
 .modal.right .modal-dialog {
     position: fixed;
     margin: auto;
@@ -253,6 +255,32 @@
 }
 
 .modal.right.fade.show .modal-dialog {
+    transform: translateX(0);
+}
+/**
+Menu
+*/
+.modal.left .modal-dialog {
+    position: fixed;
+    margin: auto;
+    width: 151px;
+    height: 100%;
+    left: 0; /* Alterado de right para left */
+    top: 0;
+    bottom: 0;
+    transition: transform 0.3s ease-in-out;
+}
+
+.modal.left .modal-content {
+    height: 100%;
+    overflow-y: auto;
+}
+
+.modal.left.fade .modal-dialog {
+    transform: translateX(-100%); /* Alterado de translateX(100%) para translateX(-100%) */
+}
+
+.modal.left.fade.show .modal-dialog {
     transform: translateX(0);
 }
 

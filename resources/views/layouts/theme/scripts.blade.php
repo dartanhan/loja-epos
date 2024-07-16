@@ -11,21 +11,34 @@
 <script src="{{URL::asset('js/url.js')}}"></script>
 
 <script>
+    /****************
+     * MENU
+     * ****************/
+
+    function openNav() {
+        document.getElementById("mySidebar").style.width = "250px";
+    }
+
+    function closeNav() {
+        document.getElementById("mySidebar").style.width = "0";
+    }
+
+    function toggleNav() {
+        if (document.getElementById("mySidebar").style.width === "250px") {
+            closeNav();
+        } else {
+            openNav();
+        }
+    }
+
     $(document).ready(function() {
+        $('[data-toggle="tooltip"]').tooltip();
 
-    $('[data-toggle="tooltip"]').tooltip();
-
-    jQuery(document).ready(function($){
-            $("#menu-toggle").click(function(e) {
-            e.preventDefault();
-            $("#wrapper").toggleClass("toggled");
-            });
-        })
 
     /***
      * PESQUISA DE PRODUTOS
      * */
-    
+
         $("#searchProduct").autocomplete({
             minLength: 2,
             source: function(request, response) {
@@ -67,10 +80,6 @@
            }
 
         });
-    /****************
-     * **************
-     * ****************/
-
 
 
     /**********************
@@ -255,6 +264,7 @@
         // Prevent the modal from closing when the close button is clicked
         $('#closeModalBtn, #closeModalFooterBtn').on('click', function (e) {
             e.preventDefault();
+            $('#slideInModal').modal('hide');
             focusInputSearch();
         });
 
@@ -272,10 +282,22 @@
             }).modal('show');
 
         });
+
+        $('#openMenu').on('click', function () {
+            $('#openMenuModal').modal({
+                // backdrop: 'static',  // Disables closing the modal by clicking outside of it
+                keyboard: false      // Disables closing the modal with the ESC key
+            }).modal('show');
+        });
+
+        $('#closeMenuModal').on('click', function () {
+            $('#openMenuModal').modal('hide');
+        });
+
     });
 
     function focusInputSearch() {
-        console.log("foi");
+        //console.log("foi");
         //Adicona ao focus ao input, após abrir a modal
         const searchProduct = document.getElementById('searchProduct');
         setTimeout(() => {
@@ -324,7 +346,7 @@ function Confirma(id, eventName, text) {
   //      pintaLinha();
    // });
 
-    
+
 /**
  * Altera a abela do Cart para exibir uma cor dioferente caso satifaça a regra
  * de atacado 5 iguais ou 12 diferentes

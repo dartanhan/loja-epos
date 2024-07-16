@@ -252,6 +252,21 @@
         </div>
     </div>
 
+    <!-- Modal Menu -->
+    <div class="modal fade left" id="openMenuModal" tabindex="-1" aria-labelledby="slideInModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary">
+                    <h5 class="modal-title" id="slideInModalLabel">Menu</h5>
+                    <button type="button" class="btn-close" id="closeMenuModal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body bg-dark">
+                    @livewire('menu')
+                </div>
+            </div>
+        </div>
+    </div>
+
     <link rel="stylesheet" href="{{ URL::asset('css/app.css') }}" />
     <link rel="stylesheet" href="{{ URL::asset('css/modal.css') }}" />
 

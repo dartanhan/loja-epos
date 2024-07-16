@@ -4,15 +4,10 @@
 namespace App\Http\Livewire;
 
 use App\Http\Models\Carts;
-use App\Http\Models\VendaProdutos;
-use App\Http\Models\VendasProdutos;
-use App\Http\Models\Vendas;
 use App\Http\Models\ProdutoVariacao;
 use App\Traits\CartTrait;
-use Darryldecode\Cart\Facades\CartFacade as Cart;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Session;
 use Livewire\Component;
 
 class CartComponent extends Component {

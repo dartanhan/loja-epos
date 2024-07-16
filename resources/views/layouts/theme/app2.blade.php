@@ -25,19 +25,19 @@
 
         <div class="d-flex" id="wrapper">
 
-        @include('layouts.theme.sidebar')
+            @include('layouts.theme.sidebar')
 
-        <!-- Page Content -->
-        <div id="main" class="mt-3">
-            @include('layouts.theme.header2')
-        
-            <div class="container-fluid mt-5">
-                @yield('content')
+            <!-- Page Content -->
+            <div class="container mt-3 p-3">
+                @include('layouts.theme.header2')
+
+                <div class="container-fluid mt-5 ">
+                    @yield('content')
+                </div>
+
+                @include('layouts.theme.footer')
             </div>
-
-            @include('layouts.theme.footer')
-        </div>
-        <!-- /#page-content-wrapper -->
+            <!-- /#page-content-wrapper -->
 
         </div>
         <!-- /#wrapper -->
@@ -47,21 +47,4 @@
 
         @livewireScripts
     </body>
-    <script>
-        function openNav() {
-            document.getElementById("mySidebar").style.width = "250px";
-        }
-
-        function closeNav() {
-            document.getElementById("mySidebar").style.width = "0";
-        }
-
-        function toggleNav() {
-            if (document.getElementById("mySidebar").style.width === "250px") {
-                closeNav();
-            } else {
-                openNav();
-            }
-        }
-    </script>
-</html> 
+</html>
