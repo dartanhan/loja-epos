@@ -2,7 +2,7 @@
 <link href="{{ asset('assets/css/loader.css') }}" rel="stylesheet" type="text/css" />
 <link href="{{ asset('assets/bootstrap/css/bootstrap.css') }}" rel="stylesheet" type="text/css" />
 
-<link href="{{URL::asset('plugins/sweetalerts/sweetalert.css')}}" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.12.2/dist/sweetalert2.min.css" rel="stylesheet">
 <link href="{{ asset('plugins/notification/snackbar/snackbar.min.css') }}" rel="stylesheet" type="text/css" />
 <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 <link href="{{ asset('plugins/font-icons/fontawesome/css/fontawesome.css') }}" rel="stylesheet" type="text/css">
@@ -151,7 +151,7 @@
         vertical-align: middle;
         color: #515365;
         font-size: 13px;
-        letter-spacing: 1px; 
+        letter-spacing: 1px;
     }
     /**
     Fim div Produtos Table
@@ -181,7 +181,7 @@
         margin-bottom: 0;
         color: #515365;
         font-size: 13px;
-        letter-spacing: 1px; 
+        letter-spacing: 1px;
     }
     .footer-wrapper .footer-section p a {
         color: #515365; }
@@ -191,7 +191,7 @@
         fill: rgba(231, 81, 90, 0.419608);
         width: 15px;
         height: 15px;
-        vertical-align: text-top; 
+        vertical-align: text-top;
     }
 
 /* Sidebar Wrapper */
@@ -256,4 +256,53 @@
     display: none;
 }
 
+    .card-body.custom-card {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 200px; /* Ajuste conforme necessário */
+    }
+
+    .total-text {
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+
+    .total-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #007bff; /* Ajuste a cor conforme necessário */
+        margin-top: 0px;
+    }
+
+    .total-card {
+        font-size: 2rem;
+    }
+
+    .product-img {
+        max-width: 50px;
+    }
+    .product-name {
+        text-align: left;
+        font-size: 11px;
+    }
+    .product-quantity {
+        text-align: right;
+    }
+    .product-price {
+        text-align: right;
+    }
+    .remover-cliente-associado{
+        cursor: pointer;
+    }
+    .tooltip-wrapper {
+        display: inline-block;
+        margin-right: 10px; /* Espaçamento entre os botões */
+    }
+    .valorTotais{
+        font-size: 16px;
+        padding: 0;
+        margin-top: 0px;
+    }
 </style>

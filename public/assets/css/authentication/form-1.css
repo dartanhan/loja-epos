@@ -210,3 +210,8 @@ body {
     background-color: #A81056!important;
     border: #F0F0F0;
 }
+
+.btn-login:hover{
+    background-color: #bb3372 !important;
+    border: #F0F0F0;
+}

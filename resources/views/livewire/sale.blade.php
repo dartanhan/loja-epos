@@ -1,4 +1,4 @@
-<div>
+<div xmlns:wire="http://www.w3.org/1999/xhtml">
     <style>
         /* Estilos customizados podem ser adicionados aqui */
         .item-list {
@@ -7,80 +7,152 @@
         }
     </style>
 
-    <div class="container">
-        <div class="row">
+    <div class="container p-0">
+        <div class="row ">
             <!--Tipo de Venda -->
-            <div class="col-md-4">
-                <div class="card mb-2">
+            <div class="col-md-4 p-0" style="width: 180px">
+                <div class="card mb-2 p-0 ml-0">
                     @livewire('tipo-venda')
                 </div>
             </div>
 
             <!-- Forma de pagamento -->
-            <div class="col-md-4">
-                <div class="card mb-2">
-                    <div class="card-header text-monospace text-center bg-primary text-white p-2">
+            <div class="p-0 ml-0" style="flex: 0 0 auto;width: 28%;" wire:ignore>
+                <div class="card mb-2 p-0 ml-0">
+                    <div class="card-header text-monospace text-center bg-primary text-white">
                         Forma de Pagamento
                     </div>
-                    <div class="card-body text-monospace">
-                        <select class="form-select mb-3">
-                            <option selected>Selecione uma opção ?</option>
-                            <option value="1">Dinheiro</option>
-                            <option value="2">Cartão de Crédito</option>
-                            <option value="3">Cartão de Débito</option>
-                            <option value="4">PIX</option>
+                    <div class="card-body text-monospace p-2">
+                        <select wire:model="selectedItemFormaPgto" class="form-select mb-2 p-1" id="formaPgto">
+                            <option value="">Selecione?</option>
+                            @foreach($paymentMethods as $payment)
+                                <option value="{{ $payment->id }}" data-slug="{{$payment->slug}}">{{ $payment->nome }}</option>
+                            @endforeach
                         </select>
                     </div>
                 </div>
             </div>
-
+            <div class="col-md-2 p-0 ml-0" style="width: 180px;display: none" id="card_dinheiro" wire:ignore>
+                <div class="card mb-2 mb-2 p-0 ml-0">
+                    <div class="card-header bg-primary text-white text-center">
+                        Valor Dinheiro
+                    </div>
+                    <div class="card-body text-monospace">
+                        <input type="text" name="dinheiro" id="dinheiro" class="form-control" wire:ignore
+                               placeholder="Valor Dinheiro" aria-label="Valor Dinheiro" aria-describedby="Valor Dinheiro"
+                               wire:model="valorRecebido" data-prefix="R$ " data-thousands="." data-decimal=","/>
+                    </div>
+                </div>
+            </div>
             <!-- Forma de entrega -->
-            <div class="col-md-4">
+            <div class="col-md-3 p-0 ml-0" >
                    @livewire('forma-entrega')
             </div>
         </div>
         <!-- Lista de produtos com imagens -->
-        <div class="card mb-3">
-            <div class="card-header bg-primary text-white">
-            Itens do Pedido
-            </div>
-            <div class="card-body item-list">
-            <ul class="list-group">
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center">
-                    <img src="https://via.placeholder.com/50" alt="Produto 1" class="me-3 rounded" style="max-width: 50px;">
-                    Produto 1
+        <div class="row">
+            <div class="card p-0 ml-0">
+                <div class="card-header bg-primary text-white">
+                    Itens da Venda
                 </div>
-                <span class="badge bg-primary rounded-pill">R$ 50,00</span>
-                </li>
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center">
-                    <img src="https://via.placeholder.com/50" alt="Produto 2" class="me-3 rounded" style="max-width: 50px;">
-                    Produto 2
+                <div class="card-body item-list">
+                    <table class="table table-hover table-striped table-responsive">
+                        <thead class="table-dark">
+                            <tr class="text-center">
+                                <th class="" colspan="2">Descrição</th>
+                                <th class="">Valor</th>
+                                <th class="">Qtd</th>
+                                <th class="">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($cartItems as $item)
+                                @if(!empty($item->imagem))
+                                    <?php
+                                    /** @var TYPE_NAME $item */
+                                    $image = asset('../../api-loja-new-git/public/storage/'.$item->imagem);
+                                    ?>
+                                @else
+                                    <?php
+                                    $image = asset('../../api-loja-new-git/public/storage/produtos/not-image.png');
+                                    ?>
+                                @endif
+                                <tr>
+                                    <td><img src="{{$image}}" alt="{{$item->name}}" title="{{$item->name}}" data-toggle="tooltip" data-placement="top" class="product-img rounded"></td>
+                                    <td>
+                                        <span class="product-name">{{$item->codigo_produto}} - {{$item->name}}</span>
+                                    </td>
+                                    <td class="product-price">
+                                        <span class="product-price">R$ {{number_format($item->price, 2, ",", ".")}}</span>
+                                    </td>
+                                    <td class="product-quantity">
+                                        <span class="product-quantity">({{$item->quantidade}})</span>
+                                    </td>
+                                    <td class="product-price">
+                                        <span class="product-price badge bg-primary rounded-pill">R$ {{number_format($item->price*$item->quantidade, 2, ",", ".")}}</span>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
-                <span class="badge bg-primary rounded-pill">R$ 30,00</span>
-                </li>
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center">
-                    <img src="https://via.placeholder.com/50" alt="Produto 3" class="me-3 rounded" style="max-width: 50px;">
-                    Produto 3
-                </div>
-                <span class="badge bg-primary rounded-pill">R$ 20,00</span>
-                </li>
-                <!-- Adicione mais itens conforme necessário -->
-            </ul>
             </div>
         </div>
-
         <!-- Total da venda -->
-        <div class="card mb-3">
-            <div class="card-header bg-primary text-white">
-                Total da Venda
+        <div class="row">
+            <div class="card mb-3 p-0 ml-0">
+                <div class="card-header bg-primary text-white text-center">
+                    Frete
+                </div>
+                <div class="card-body">
+                    <div class="total-container text-center">
+                        <span class="total-value d-block">R$ {{number_format($frete ,2,",",".")}}</span>
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-                <h5 class="card-title"> R$ {{number_format($cartTotal['total'] ,2,",",".")}} </h5>
+
+            <div class="card mb-3 p-0 ml-0">
+                <div class="card-header bg-primary text-white text-center">
+                    Troco
+                </div>
+                <div class="card-body">
+                    <div class="total-container text-center">
+                        <span class="total-value d-block">R$ {{number_format($troco,2,",",".")}}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="card mb-3 p-0 ml-0">
+                <div class="card-header bg-primary text-white text-center">
+                    Cashback
+                </div>
+                <div class="card-body">
+                    <div class="total-container text-center">
+                        <span class="total-value d-block">R$ {{number_format($cashback,2,",",".")}}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="card mb-3 p-0 ml-0">
+                <div class="card-header bg-primary text-white text-center">
+                    Descontos
+                </div>
+                <div class="card-body">
+                    <div class="total-container text-center">
+                        <span class="total-value d-block">R$ {{number_format($discount,2,",",".")}}</span>
+                    </div>
+                </div>
             </div>
         </div>
-
+        <div class="row">
+            <div class="card mb-3 p-0 ml-0">
+                <div class="card-header bg-success text-white text-center">
+                    <h4>TOTAL GERAL</h4>
+                </div>
+                <div class="card-body">
+                    <div class="total-container text-center">
+                        <span class="total-value total-card d-block">R$ {{number_format($total,2,",",".")}}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>

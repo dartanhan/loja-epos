@@ -1,15 +1,15 @@
-<div>
+<div xmlns:wire="http://www.w3.org/1999/xhtml">
     <!-- Card de Forma de Entrega (exibido apenas se a venda for "online") -->
     @if ($showEntrega)
-        <div class="card mb-3">
-            <div class="card-header text-monospace text-center bg-primary text-white">
+        <div class="card mb-2 p-0 ml-0">
+            <div class="card-header bg-primary text-white text-center p-2">
                 Forma de Entrega
             </div>
             <div class="card-body text-monospace">
-                <select class="form-select mb-3">
-                    <option selected>Selecione uma opção ?</option>
+                <select wire:model="selectedItemForma" class="form-select mb-1 p-1" id="formaEntrega">
+                    <option selected>Selecione?</option>
                     @foreach($items as $item)
-                        <option value="{{$item->id}}">{{$item->descricao}}</option>
+                        <option value="{{$item->id}}" data-alias="{{$item->alias}}">{{$item->descricao}}</option>
                     @endforeach
                 </select>
             </div>

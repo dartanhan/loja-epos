@@ -4,18 +4,20 @@ namespace App\Http\Livewire;
 
 use App\Http\Models\Carts;
 use App\Http\Models\Cliente;
+use App\Traits\CartTrait;
 use http\Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
+use App\Constants\IconConstants;
 
 
 class SearchClient extends Component
 {
-    public $cpfTelefone,$nome, $cpf, $email, $telefone, $cep, $logradouro, $numero, $complemento, $bairro,
-            $localidade, $uf, $taxa;
+    public $cpfTelefone,$nome, $cpf, $email, $telefone, $cep, $logradouro, $numero, $complemento, $bairro,$localidade, $uf, $taxa;
     public $client;
     public $clienteId;
+    public $cartItems;
 
     protected $listeners = [
         'resetInputFields'  =>  'resetInputFields'
@@ -151,10 +153,7 @@ class SearchClient extends Component
       //  dd('includeClient' . $this->clienteId , Auth::id());
 
         try {
-            $carts = Carts::where('user_id', Auth::id())
-                            ->where("status", "ABERTO")
-                            ->get();
-
+            $carts = Carts::where('user_id', Auth::id())->where("status", "ABERTO")->get();
 
             // Itera sobre cada carrinho encontrado e atualiza o cliente_id
             foreach ($carts as $cart) {
@@ -162,12 +161,16 @@ class SearchClient extends Component
                 $cart->save();
             }
 
+            $this->emit('message', 'Cliente adicionado à venda com sucesso!!',IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN);
+            $this->emit('refresh',true);
+            $this->resetInputFields();
+
             //session()->flash('message', 'Cliente adicionado à venda com sucesso!');
            // $this->emit('updateTotal');
-            $this->emit('scan-ok','Cliente adicionado à venda com sucesso!');
-            $this->emit('atualizarCarrinho');
-            $this->emit('focus-input-search', null);
-            $this->resetInputFields();
+           // $this->emit('atualizarCarrinho');
+           // $this->emitTo('incluir-cliente','atualizarCliente');
+           // $this->emit('focus-input-search', null);
+
         }catch (Exception $e){
             session()->flash('error', $e->getMessage());
         }

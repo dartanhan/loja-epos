@@ -9,9 +9,10 @@ class FormaEntrega extends Component
 {
     public $items;
     public $showEntrega = false;
-   
+    public $selectedItemForma;
 
-    protected $listeners = ['tipoVendaUpdated' => 'handleTipoVendaUpdated'];
+
+    protected $listeners = ['tipoVendaUpdated' => 'handleTipoVendaUpdated','formaEntregaResetSelect'=>'resetSelect'];
 
     public function mount(){
         $this->items = Forma::where("status", true)->orderby("descricao","asc")->get();
@@ -20,6 +21,23 @@ class FormaEntrega extends Component
     public function handleTipoVendaUpdated($tipoVenda)
     {
         $this->showEntrega = ($tipoVenda == 'online');
+    }
+
+    public function updatedSelectedItemForma($value)
+    {
+
+        $alias = $this->items->firstWhere('id', $value)->alias ?? null;
+
+        if ($alias == 'motoboy-loja') {
+            $this->emitTo('sale','vendaUpdated', 'motoboy-loja');
+        } else {
+            $this->emitTo('sale','vendaUpdated', '');
+            $this->selectedItemForma = null;
+        }
+    }
+
+    public function resetSelect(){
+        $this->selectedItemForma = null;
     }
 
     public function render()

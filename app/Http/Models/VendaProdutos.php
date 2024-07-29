@@ -9,7 +9,7 @@ class VendaProdutos extends Model
 {
     use HasFactory;
     public $table = 'loja_vendas_produtos';
-    protected $fillable = ['venda_id','codigo_produto','descricao','valor_produto','quantidade','categoria_id','fornecedor_id'];
+    protected $fillable = ['venda_id','codigo_produto','descricao','valor_produto','quantidade','troca','categoria_id','fornecedor_id'];
     public $timestamps = false;
 
     public function vendas() {

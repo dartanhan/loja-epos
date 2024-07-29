@@ -9,7 +9,7 @@ class Carts extends Model
 {
     use HasFactory;
     public $table = "loja_carts";
-    protected $fillable = ['user_id','cliente_id','produto_variation_id','name','price','quantidade','imagem','status'];
+    protected $fillable = ['user_id','cliente_id','produto_variation_id','name','price','codigo_produto','quantidade','imagem','status'];
 
     public function variations(){
         return $this->hasMany(ProdutoVariation::class, 'id', 'produto_variation_id');
