@@ -2,18 +2,18 @@
 namespace App\Traits;
 
 use App\Constants\IconConstants;
-use App\Http\Livewire\CartTotal;
 use App\Http\Models\Carts;
 use App\Http\Models\ProdutoVariacao;
 use App\Http\Models\TaxaCartao;
 use App\Http\Models\VendaProdutos;
 use App\Http\Models\Vendas;
+use App\Http\Models\VendasProdutosDesconto;
 use App\Http\Models\VendasProdutosTipoPagamento;
 use Darryldecode\Cart\Facades\CartFacade as Cart;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
-use phpDocumentor\Reflection\Types\True_;
+
 
 trait CartTrait {
 
@@ -22,58 +22,54 @@ trait CartTrait {
      * @param $barcode
      * @param int $cant
      */
-    public function ScanearCode($barcode, $cant = 1)
-    {
+    // public function ScanearCode($barcode, $cant = 1)
+    // {
 
-        $product = ProdutoVariacao::with('images','produtos')
-            ->where("subcodigo",$barcode)
-            ->where("status",1)
-            ->first();
+    //     $product = ProdutoVariacao::with('images','produtos')
+    //         ->where("subcodigo",$barcode)
+    //         ->where("status",1)
+    //         ->first();
 
-        if($product == null || empty($product))
-        {
-                $this->emit("message", "Atenção! Produto não registrado!", IconConstants::ICON_SCAN,IconConstants::COLOR_RED);
-        }  else {
+    //     if($product == null || empty($product))
+    //     {
+    //             $this->emit("message", "Atenção! Produto não registrado!", IconConstants::ICON_SCAN,IconConstants::COLOR_RED);
+    //     }  else {
 
-                if($this->InCart($product->id))
-                {
-                        $this->IncreaseQuantity($product);
-                        return;
-                }
+    //             if($this->InCart($product->id))
+    //             {
+    //                     $this->IncreaseQuantity($product);
+    //                     return;
+    //             }
 
-                if($product->quantidade <1)
-                {
-                    $this->emit("message", "Atenção! Estoque insuficiente!", IconConstants::ICON_ERROR,IconConstants::COLOR_RED);
-                    return;
-                }
+    //             if($product->quantidade <1)
+    //             {
+    //                 $this->emit("message", "Atenção! Estoque insuficiente!", IconConstants::ICON_ERROR,IconConstants::COLOR_RED);
+    //                 return;
+    //             }
 
-                $this->carts = new Carts();
-                $this->carts->user_id = $this->userId;
-                $this->carts->produto_variation_id = $product->id;
-                $this->carts->name =  $product['produtos'][0]->descricao ." - " . $product->variacao;
-                $this->carts->codigo_produto = $product->subcodigo;
-                $this->carts->price = $product->valor_varejo;
-                $this->carts->quantidade = $cant;
-                $this->carts->imagem = count($product->images) > 0 ? $product->images[0]->path : "";
+    //             $this->carts = new Carts();
+    //             $this->carts->user_id = $this->userId;
+    //             $this->carts->produto_variation_id = $product->id;
+    //             $this->carts->name =  $product['produtos'][0]->descricao ." - " . $product->variacao;
+    //             $this->carts->codigo_produto = $product->subcodigo;
+    //             $this->carts->price = $product->valor_varejo;
+    //             $this->carts->quantidade = $cant;
+    //             $this->carts->imagem = count($product->images) > 0 ? $product->images[0]->path : "";
 
-                $this->carts->save();
+    //             $this->carts->save();
 
-               $this->loadCartItems();
+    //            $this->loadCartItems();
 
-                if (!$this->items->isEmpty()) {
-                    if (!$this->items[0]->clientes->isEmpty()) {
-                        $this->carts->cliente_id = $this->items[0]->clientes[0]->id;
-                    }
-                }
-                $totais = $this->getTotalCartTraitByUser();
+    //             if (!$this->cartItems->isEmpty()) {
+    //                 if (!$this->items[0]->clientes->isEmpty()) {
+    //                     $this->carts->cliente_id = $this->items[0]->clientes[0]->id;
+    //                 }
+    //             }
 
-                $this->total = $totais['total'];
-                $this->subTotal = $totais['subTotal'];
-                $this->taxa = $totais['taxa'];
 
-                $this->emit("message", "Produto Adicionado!", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN,false,true);
-        }
-    }
+    //             $this->emit("message", "Produto Adicionado!", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN,false,true);
+    //     }
+    // }
 
     /**
     * Gera o nímero do código da venda
@@ -130,13 +126,13 @@ trait CartTrait {
 
                 if($product->update()){
                   //  $this->emit('scan-ok', "Produto atualizado com sucesso!");
-                    $this->emit("message", "Produto atualizado com sucesso!", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN);
-                    $this->emit('atualizarCarrinho');
+                    $this->emit("message", "Quantidade adicionada com sucesso!", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN);
+                    $this->emitTo('cart-component','atualizarCarrinho');
+                    $this->emitTo('total-sale','totalSaleVendaUpdated','');
                 }else{
-                    $this->emit('global-error', "Não foi possivel atualizar o produto!");
+                    $this->emit("message", "Não foi possivel atualizar a venda!", IconConstants::ICON_ERROR,IconConstants::COLOR_RED);
                 }
             }
-        $this->total = $this->getTotalCartTraitByUser()['total'];
     }
 
     /**
@@ -148,22 +144,18 @@ trait CartTrait {
         $delete = Carts::find($productId)->delete();
 
         if($delete){
-            //$this->emit('scan-remove', 'Produto removido!');
             $this->emit("message", "Produto removido!", IconConstants::ICON_REMOVE_CART,IconConstants::COLOR_RED);
             $this->emit('refresh', true);
         }else{
             $this->emit("message", "Não foi possivel remover o produto!", IconConstants::ICON_ERROR,IconConstants::COLOR_RED);
         }
-        $this->total = $this->getTotalCartTraitByUser()['total'];
-        $this->discount($this->cartItems);
     }
 
     /**
      * Decrementa a quantidade de produto no componente CART
      * @param $product_id
-     * @param int $cant
      */
-    public function decreaseQuantity($product_id, $cant = 1){
+    public function decreaseQuantity($product_id){
 
         $product = Carts::with('variations')->where('produto_variation_id', $product_id)
             ->where('user_id',$this->userId)
@@ -181,14 +173,13 @@ trait CartTrait {
 
             if($product->update()){
                 //$this->emit('scan-ok', "Produto atualizado com sucesso!");
-                $this->emit("message", "Produto atualizado com sucesso!", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN);
-                $this->emit('atualizarCarrinho');
+                $this->emit("message", "Quantidade removida com sucesso!", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN);
+                $this->emitTo('cart-component','atualizarCarrinho');
+                $this->emitTo('total-sale','totalSaleVendaUpdated','');
             }else{
-                $this->emit('global-error', "Não foi possivel atualizar o produto!");
-                $this->emit("message", "Não foi possivel atualizar o produto!", IconConstants::ICON_ERROR,IconConstants::COLOR_RED);
+                $this->emit("message", "Não foi possivel atualizar a venda!", IconConstants::ICON_ERROR,IconConstants::COLOR_RED);
             }
-            $this->total = $this->getTotalCartTraitByUser()['total'];
-            $this->discount($this->cartItems);
+           
         }
     }
 
@@ -231,68 +222,6 @@ trait CartTrait {
        // $this->emit('global-msg', 'Cliente removido da venda, com sucesso!!');
     }
 
-//public function updateQuantity($product, $cant = 1)
-//{
-//        $title='';
-//
-//        $userId = auth()->user()->id; // or any string represents user identifier
-//        Cart::session($userId)->getContent();
-//        $exist = Cart::get($product->id);
-//
-//        //quantidade de produtros vinda no relacionamento
-//        $quantidade = $exist->associatedModel->quantidade;
-//
-//        if($exist)
-//                $title = 'Quantidade atualizada!';
-//        else
-//                $title ='Produto adicionado!';
-//
-//        if($exist)
-//        {
-//                if($quantidade < $cant)
-//                {
-//                        $this->emit('no-stock','Atenção! Estoque insuficiente.');
-//                        return;
-//                }
-//        }
-//
-//        $this->removeItem($product->id);
-//
-//        if($cant > 0)
-//        {
-//            Cart::add($product->products_id, $product->variacao, $product->valor_varejo, $cant, null);
-//                //Cart::add($product->id, $product->name, $product->price, $cant, $product->image);
-//
-//                $this->total = Cart::getTotal();
-//                $this->itemsQuantity = Cart::getTotalQuantity();
-//
-//                $this->emit('scan-ok', $title);
-//
-//        }
-//}
-
-
-    /***
-     * Retorna os totais e o frete
-     * @param $items
-     * @return array
-     */
-//    public function getTotalCartTraitByUser($items)
-//    {
-//        // Obtendo todos os itens do carrinho do usuário
-//       // $items = Carts::with('clientes')->where('user_id', Auth::id())->where('status' , 'ABERTO')->get();
-//
-//        // Calculando o total
-//        $subTotal = $items->sum(function ($item) {
-//            return $item->quantidade * $item->price;
-//        });
-//
-//        $taxa = $items[0]->clientes[0]->taxa ?? 0;
-//
-//        $total = $subTotal-$this->discount;
-//
-//        return  array("total" => $total, "subTotal" => $subTotal, "taxa" => $taxa);
-//    }
 
     /**
      * Função pincipal com os dados da venda
@@ -305,41 +234,49 @@ trait CartTrait {
             ->orderBy('id','desc')
             ->get();
 
-        // Calculando o total
-        $subTotal =  $this->cartItems->sum(function ($item) {
-            return $item->quantidade * $item->price;
-        });
-
+       
         //taxa do cliente
         $taxa = $this->cartItems[0]->clientes[0]->taxa ?? 0;
 
+        //verica se tem desconto
+        $this->discount();
+        //total geral
+        $this->total();//$this->total = $this->subTotal()-$this->discount;
+        //Retorna os totais
+        $this->subTotal = $this->subTotal();
+        $this->totalItens = count($this->cartItems);
+    }
+
+    /***
+     * Retorna o total da venda
+     */
+    public function total(){
+        $this->total = $this->subTotal()-$this->discount;
+    }
+
+    /***
+     * Retorna o subtotal da venda
+     */
+    public function subTotal(){
+        // Calculando o subtotal
+        $subTotal =  $this->cartItems->sum(function ($item) {
+            return $item->quantidade * $item->price;
+        });
+        return $subTotal;
+    }
+
+    /***
+     * Retorna o desconto do produto na venda
+     */
+    public function discount(){
         //pega o desconto da venda
         foreach ($this->cartItems as $product) {
             $this->discount = 0;
-            if($product['quantidade'] < 5){
+            if($product['quantidade'] < 5 && \floatval($product['variations'][0]['percentage'] > 0)){
                 //$this->discount += $product['variations'][0]['valor_varejo'] * $product['variations'][0]['percentage']/100;
                 $this->discount += $product['price'] * $product['variations'][0]['percentage']/100;
             }
         }
-
-        //total geral
-        $total = $subTotal-$this->discount;
-
-        //Retorna os totais
-       // $totais = $this->getTotalCartTraitByUser($this->cartItems);
-        $this->total = $total;
-        $this->subTotal = $subTotal;
-        //$this->taxa = $taxa ;
-        //$this->frete = $taxa;
-
-    }
-
-    /**
-     * Retorna o total de itens do carrinho
-     * @param $cartItems
-     */
-    public function totalItens($cartItems){
-        $this->totalItens = count($cartItems);
     }
 
     /**
@@ -350,12 +287,15 @@ trait CartTrait {
     {
         DB::beginTransaction();
 
-       // dd($data);
+       
+        //dd($data);
 
         $status = 'PAGO'; // valor que você deseja definir para o campo status
         $clienteId = null;
         $productsData = [];
         $productVariations =[];
+        $this->total =\floatval(\number_format($this->total,2));
+
         try {
             //$cartTotal = $this->getTotalCartTraitByUser()['total'];
             if ($this->cartItems->isNotEmpty() && optional($this->cartItems->first()->clientes)->isNotEmpty()){
@@ -369,9 +309,9 @@ trait CartTrait {
                 "usuario_id" =>  Auth::id(),//isset($dados["usuario_id"]) ? $dados["usuario_id"] : 3,
                 "cliente_id" =>  $clienteId,
                 "tipo_venda_id" => (int)$data['tipoVenda'],
-                "forma_entrega_id" => $data['forma_entrega']
+                "forma_entrega_id" => (int)$data['forma_entrega']
             ];
-            dd($sale);
+            //dd($sale);
             //Salva a venda
             $sale = Vendas::create($sale);
 
@@ -430,8 +370,15 @@ trait CartTrait {
                 // Inserção em massa
                 VendasProdutosTipoPagamento::insert($paymentTypesData);
 
+                 // Prepara os dados para inserção 
+                 $saleDiscountData[] = [
+                    'venda_id' => 1,
+                    'valor_desconto' => \floatval(\number_format($this->discount,2)),
+                    'valor_recebido' =>  \floatval(\number_format($data["valor_dinheiro"] ? $data["valor_dinheiro"] : 0)),
+                    'valor_percentual' => 0
+                ];
 
-                //VendasProdutosDesconto::insert();
+                VendasProdutosDesconto::insert($saleDiscountData);
 
             }
 

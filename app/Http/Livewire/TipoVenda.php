@@ -14,12 +14,12 @@ class TipoVenda extends Component
         $this->items = TipoVendas::orderby("descricao","asc")->get();
 
         // Definir o item "presencial" como padrão
-        $this->selectedItem = $this->items->firstWhere('alias', 'presencial')->id ?? null;
+        $this->selectedItem = $this->items->firstWhere('slug', 'presencial')->id ?? null;
     }
 
     public function updatedSelectedItem($value)
     {
-        $alias = $this->items->firstWhere('id', $value)->alias ?? null;
+        $alias = $this->items->firstWhere('id', $value)->slug ?? null;
 
 
         if ($alias == 'online') {
@@ -28,7 +28,6 @@ class TipoVenda extends Component
             $this->emit('tipoVendaUpdated', 'presencial');
             $this->emitTo('forma-entrega','formaEntregaResetSelect');
             $this->emitTo('sale','vendaUpdated','');
-
         }
         $this->emitTo('sale','tipoVenda', $value);
     }

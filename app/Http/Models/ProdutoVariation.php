@@ -21,9 +21,9 @@ class ProdutoVariation extends Model implements Auditable
         return $this->belongsTo(ProdutoNew::class,'products_id');
     }
 
-    public function variations() {
-        return $this->belongsTo(ProdutoVariation::class);
-    }
+    // public function variations() {
+    //     return $this->belongsTo(ProdutoVariation::class);
+    // }
 
     function images(){
         return  $this->hasMany(ProdutoImagem::class ,'produto_variacao_id','id');

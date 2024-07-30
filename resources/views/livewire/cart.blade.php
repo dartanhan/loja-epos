@@ -18,9 +18,9 @@
                                         <th class="" style="width: 120px">Subtotal</th>
                                     </tr>
                                     </thead>
-                                    <tbody>
+                                    <tbody >
                                     @foreach($cartItems as $item)
-
+                                       
                                         <tr id="{{$item->id}}" >
                                             <td class="text-center" style="cursor: pointer">
 
@@ -31,16 +31,25 @@
                                             </td>
                                             <td class="text-left">
                                             @if(!empty($item->imagem))
-                                                    <span class="cart-product-img"
-                                                        style="background-image: url('{{ asset('../../api-loja-new-git/public/storage/'.$item->imagem) }}'); opacity: 1;"
-                                                        data-toggle="tooltip" data-placement="top" title="{{ $item->name }}">
-                                                        @if($item->quantidade == $item->variations[0]->quantidade)
-                                                            <span class="cart-product-img-tip">Último Disponível</span>
-                                                        @endif
-                                                    </span>
+                                            <?php
+                                                /** @var TYPE_NAME $item */
+                                                $image = asset(env("URL_IMAGE").'/public/storage/'.$item->imagem);
+                                            ?>
+                                            <span class="cart-product-img" 
+                                                style="background-image: url('{{ $image }}'); opacity: 1;" 
+                                                data-toggle="tooltip" data-placement="top" title="{{ $item->name }}">
+                                                @if($item->quantidade == $item->variations[0]->quantidade)
+                                                    <span class="cart-product-img-tip">Último Disponível</span>
+                                                @endif
+                                            </span>
+
                                                 @else
+                                                <?php
+                                                    /** @var TYPE_NAME $item */
+                                                    $image = asset(env("URL_IMAGE").'/public/storage/produtos/not-image.png');
+                                                ?>
                                                     <span class="cart-product-img"
-                                                        style="background-image: url('{{ asset('../../api-loja-new-git/public/storage/produtos/not-image.png')}}'); opacity: 1;"
+                                                        style="background-image: url('{{ $image }}'); opacity: 1;"
                                                         data-toggle="tooltip" data-placement="top" title="{{ $item->name }}">
                                                         @if($item->quantidade == $item->variations[0]->quantidade)
                                                             <span class="cart-product-img-tip">Último Disponível</span>
@@ -137,12 +146,7 @@
                         <h4 class="mb-0"><b>TOTAL</b></h4>
                     </div>
                     <div class="card-body d-flex flex-column justify-content-center align-items-center">
-                        <div class="total-container text-center">
-                            <?php
-                                //$total = 'R$'. number_format($cartItems->sum(fn($item) => ($item->price * $item->quantidade))-$discount, 2,",",".");
-                            ?>
-                            <span class="total-value total-card  d-block">{{ 'R$'. number_format($total, 2,",",".") }}</span>
-                        </div>
+                          @livewire('total-sale')
                     </div>
                 </div>
             </div>

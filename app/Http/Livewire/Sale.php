@@ -72,6 +72,7 @@ class Sale extends Component
             if ($this->cartItems->isNotEmpty() && optional($this->cartItems->first()->clientes)->isNotEmpty()){
                 $this->total += $this->cartItems[0]->clientes[0]->taxa;
                 $this->frete = $this->cartItems[0]->clientes[0]->taxa;
+               // $this->emitTo('cart-component','atualizarCarrinho');
             }
         }
     }

@@ -6,10 +6,10 @@
                 Forma de Entrega
             </div>
             <div class="card-body text-monospace">
-                <select wire:model="selectedItemForma" class="form-select mb-1 p-1" id="formaEntrega">
+                <select wire:model="selectedItemForma" class="form-select mb-1 p-1" id="formaEntrega" wire:ignore>
                     <option selected>Selecione?</option>
                     @foreach($items as $item)
-                        <option value="{{$item->id}}" data-alias="{{$item->alias}}">{{$item->descricao}}</option>
+                        <option value="{{$item->id}}" data-alias="{{$item->slug}}">{{$item->descricao}}</option>
                     @endforeach
                 </select>
             </div>

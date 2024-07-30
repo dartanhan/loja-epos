@@ -8,7 +8,7 @@
     </style>
 
     <div class="container p-0">
-        <div class="row ">
+        <div class="row">
             <!--Tipo de Venda -->
             <div class="col-md-4 p-0" style="width: 180px">
                 <div class="card mb-2 p-0 ml-0">
@@ -70,11 +70,11 @@
                                 @if(!empty($item->imagem))
                                     <?php
                                     /** @var TYPE_NAME $item */
-                                    $image = asset('../../api-loja-new-git/public/storage/'.$item->imagem);
+                                    $image = asset(env("URL_IMAGE").'/public/storage/'.$item->imagem);
                                     ?>
                                 @else
                                     <?php
-                                    $image = asset('../../api-loja-new-git/public/storage/produtos/not-image.png');
+                                    $image = asset(env('URL_IMAGE') . '/public/storage/produtos/not-image.png');
                                     ?>
                                 @endif
                                 <tr>

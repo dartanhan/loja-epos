@@ -6,15 +6,10 @@ namespace App\Http\Livewire;
 use App\Constants\IconConstants;
 use App\Http\Models\Carts;
 use App\Http\Models\ProdutoVariacao;
-use App\Http\Models\VendaProdutos;
-use App\Http\Models\Vendas;
 use App\Traits\CartTrait;
-use Brick\Math\BigDecimal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Livewire\Component;
-use NumberFormatter;
 
 class CartComponent extends Component {
 
@@ -40,7 +35,6 @@ class CartComponent extends Component {
         $this->userId = Auth::id();
         $this->loadCartItems();
         $this->codeSale = $this->getCodeSaleKN();
-        $this->totalItens($this->cartItems);
     }
 
     public function decrementQuantity(int $product_id, $cant = 1)
@@ -114,23 +108,20 @@ class CartComponent extends Component {
             Carts::create($carts);
         }
 
-        $this->loadCartItems();
         $this->emit("message", "Item adicionado com sucesso!", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN);
         $this->emit('atualizarCarrinho');
+        $this->emitTo('total-sale','totalSaleVendaUpdated','');
         $this->barcode = "";
-        $this->totalItens($this->cartItems);
-        $this->discount($this->cartItems);
+        //$this->loadCartItems();
     }
 
     public function removeFromCart($cartItemId)
     {
-        $cartItem = Carts::find($cartItemId)->delete();;
+        $cartItem = Carts::find($cartItemId)->delete();
 
+        $this->emit("message", "Item removido com sucesso!", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN);
         $this->barcode = "";
         $this->loadCartItems();
-        $this->emit("message", "Item removido com sucesso!", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN);
-        $this->totalItens($this->cartItems);
-        $this->discount($this->cartItems);
 
         if(count($this->cartItems) === 0)
             $this->emit('refresh', true);
