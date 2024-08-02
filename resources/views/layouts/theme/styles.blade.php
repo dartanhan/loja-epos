@@ -92,8 +92,8 @@
     Div da table de produtos
     */
     .div-scroll-container {
-        height: 350px;
-        border: 1px solid #ccc;
+        height: 500px;
+        border:  none;
         /*overflow: auto; !* Permite a rolagem interna *!*/
         /*scrollbar-width: none; !* Firefox *!*/
         /*-ms-overflow-style: none; !* IE 10+ *!*/
@@ -115,9 +115,9 @@
         background-position: center;
         position: relative;
         display: inline-block;
-        border-bottom-left-radius: 8px; /* Define o raio da borda inferior esquerda */
-        border-bottom-right-radius: 8px; /* Define o raio da borda inferior direita */
-       /* background-color: rgba(0, 0, 0, 0.2);*/
+        /* Define o raio da borda inferior esquerda */
+        /* Define o raio da borda inferior direita */
+        border-radius: 8px;
     }
 
     .cart-product-img-tip {
@@ -281,7 +281,8 @@
     }
 
     .product-img {
-        max-width: 50px;
+        max-width: 80px;
+        max-height: 80px;
     }
     .product-name {
         text-align: left;
@@ -304,5 +305,9 @@
         font-size: 16px;
         padding: 0;
         margin-top: 0px;
+    }
+    .text-red{
+        color: #ff0000;
+        cursor: pointer;
     }
 </style>

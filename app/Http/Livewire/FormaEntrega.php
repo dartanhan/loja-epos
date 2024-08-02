@@ -25,13 +25,14 @@ class FormaEntrega extends Component
 
     public function updatedSelectedItemForma($value)
     {
+        $slug = null;
+        $id = null;
 
-        $slug = $this->items->firstWhere('id', $value)->slug ?? null;
-
-        if ($slug == 'motoboy-loja') {
-            $this->emitTo('sale','vendaUpdated', 'motoboy-loja');
-        } else {
-            $this->emitTo('sale','vendaUpdated', '');
+        $data = $this->items->firstWhere('id', $value) ?? null;
+        if ($data){
+             $this->emitTo('sale','vendaUpdated', $data->slug ,$data->id );
+        }else{
+            $this->emitTo('sale','vendaUpdated', $slug ,$id );
         }
         /***
          * Emite o evento para alterar o total

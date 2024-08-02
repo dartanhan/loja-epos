@@ -25,6 +25,8 @@ class CartComponent extends Component {
     public $totalItens = 0;
     public $discount = 0;
     public $total=0;
+    public $subTotal=0;
+    public $cashback=0;
 
     protected $listeners = ['atualizarCarrinho' => 'render',
                             'addToCart' => 'addToCart',
@@ -32,20 +34,9 @@ class CartComponent extends Component {
 
     public function mount()
     {
-        $this->userId = Auth::id();
-        $this->loadCartItems();
+        $this->userId = $this->userId();
+        $this->cartItems = $this->loadCartItemsTrait();
         $this->codeSale = $this->getCodeSaleKN();
-    }
-
-    public function decrementQuantity(int $product_id, $cant = 1)
-    {
-        $this->decreaseQuantity($product_id, $cant);
-    }
-
-    public function incrementQuantity(int $product_id, $cant = 1)
-    {
-        //dd($product_id);
-        $this->IncreaseQuantity($product_id, $cant);
     }
 
     public function search(Request $request)
@@ -65,66 +56,14 @@ class CartComponent extends Component {
         return response()->json($this->products);
     }
 
+    /**
+     * Adiciona o item ao carrinho
+     * @param $barcode
+     * @param $productVariationId
+     */
     public function addToCart($barcode,$productVariationId)
     {
-        //dd($barcode,$productVariationId);
-        //$cartItem = Carts::where('product_id', $productId)->first();
-        $cartItem = Carts::with('clientes')
-            ->where('user_id', Auth::id())
-            ->where('produto_variation_id', $productVariationId)
-            ->where('status' , 'ABERTO')->first();
-
-        if ($cartItem) {
-            $cartItem->increment('quantidade');
-        } else {
-            $cliente_id = null;
-            //verifica se tem venda aberta e se tem cliente associado de ao menos 1 item no carrinho
-            $cartItemCliente = Carts::with('clientes')
-                ->where('user_id', Auth::id())
-                ->where('status' , 'ABERTO')->first();
-
-            //dd($cartItemCliente);
-            if ($cartItemCliente && $cartItemCliente->clientes->isNotEmpty()) {
-                $cliente_id = $cartItemCliente->clientes[0]->id;
-            }
-
-            //busa o produto para inserir no carrinho pelo seu codigo
-            $cartItem = ProdutoVariacao::with('images','produtos')
-                ->where("subcodigo",$barcode)
-                ->where("status",true)
-                ->first();
-
-            $carts=[
-                'user_id' => $this->userId,
-                'produto_variation_id' => $cartItem->id,
-                'name' => $cartItem['produtos'][0]->descricao ." - " . $cartItem->variacao,
-                'price' => $cartItem->valor_varejo,
-                'codigo_produto' => $cartItem->subcodigo,
-                'quantidade' => 1,
-                'imagem' => count($cartItem->images) > 0 ? $cartItem->images[0]->path : "",
-                'cliente_id' =>$cliente_id
-            ];
-
-            Carts::create($carts);
-        }
-
-        $this->emit("message", "Item adicionado com sucesso!", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN);
-        $this->emit('atualizarCarrinho');
-        $this->emitTo('total-sale','totalSaleVendaUpdated','');
-        $this->barcode = "";
-        //$this->loadCartItems();
-    }
-
-    public function removeFromCart($cartItemId)
-    {
-        $cartItem = Carts::find($cartItemId)->delete();
-
-        $this->emit("message", "Item removido com sucesso!", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN);
-        $this->barcode = "";
-        $this->loadCartItems();
-
-        if(count($this->cartItems) === 0)
-            $this->emit('refresh', true);
+        $this->addToCartTrait($barcode,$productVariationId);
     }
 
     /**
@@ -140,7 +79,7 @@ class CartComponent extends Component {
 
     public function render()
     {
-        return view('livewire.cart')->extends('layouts.theme.app2')->section('content');
+        return view('livewire.cart-component')->extends('layouts.theme.app2')->section('content');
        // return view('livewire.cart')->extends('layouts.theme.app')->section('content');
     }
 }

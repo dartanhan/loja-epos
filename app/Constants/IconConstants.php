@@ -7,6 +7,7 @@ class IconConstants {
     const COLOR_WHITE = '#ffffff';
     const COLOR_GREEN = '#02b84a';
     const COLOR_RED = '#e7515a';
+    const COLOR_YEWLLOW= '#f0c674';
 
     const ICON_SUCCESS = 'fas fa-check-circle';
     const ICON_ERROR = 'fas fa-window-close';

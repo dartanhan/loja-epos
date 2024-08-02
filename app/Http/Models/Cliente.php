@@ -12,4 +12,6 @@ class Cliente extends Model
     public function carts() {
         return $this->belongsTo(Carts::class);
     }
+
+
 }

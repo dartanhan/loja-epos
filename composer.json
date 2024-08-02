@@ -15,7 +15,8 @@
         "laravel/tinker": "^2.5",
         "livewire/livewire": "^2.12",
         "owen-it/laravel-auditing": "^13.6",
-      "ext-intl": "*"
+      "ext-intl": "*",
+        "ext-http": "*"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.7",

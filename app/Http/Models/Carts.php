@@ -18,4 +18,9 @@ class Carts extends Model
     public function clientes(){
         return $this->hasMany(Cliente::class, 'id', 'cliente_id');
     }
+
+
+    public function cashback(){
+        return $this->hasMany(VendasCashBack::class, 'cliente_id','cliente_id');
+    }
 }

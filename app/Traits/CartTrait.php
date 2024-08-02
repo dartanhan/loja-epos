@@ -3,11 +3,14 @@ namespace App\Traits;
 
 use App\Constants\IconConstants;
 use App\Http\Models\Carts;
+use App\Http\Models\Cashback;
 use App\Http\Models\ProdutoVariacao;
 use App\Http\Models\TaxaCartao;
 use App\Http\Models\VendaProdutos;
 use App\Http\Models\Vendas;
+use App\Http\Models\VendasCashBack;
 use App\Http\Models\VendasProdutosDesconto;
+use App\Http\Models\VendasProdutosEntrega;
 use App\Http\Models\VendasProdutosTipoPagamento;
 use Darryldecode\Cart\Facades\CartFacade as Cart;
 use Illuminate\Support\Facades\Auth;
@@ -18,58 +21,122 @@ use Illuminate\Support\Facades\Session;
 trait CartTrait {
 
     /**
+     * Adiciona item ao carrinho
+     * @param $barcode
+     * @param $productVariationId
+     */
+    public function addToCartTrait($barcode,$productVariationId)
+    {
+
+        //$cartItem = Carts::where('product_id', $productId)->first();
+        $cartItem = Carts::with('clientes')
+            ->where('user_id', $this->userId)
+            ->where('produto_variation_id', $productVariationId)
+            ->where('status' , 'ABERTO')->first();
+
+        //busa o produto para inserir no carrinho pelo seu codigo
+        $produto = ProdutoVariacao::with('images','produtos')
+            ->where("subcodigo",$barcode)
+            ->where("status",true)
+            ->first();
+       // dd($cartItem );
+
+        if ($cartItem) {
+            if($cartItem->quantidade+1 > $produto->quantidade)
+            {
+                $this->emit("message", "Estoque insuficiente! Quantidade total disponível [$cartItem->quantidade]", IconConstants::ICON_WARNING,IconConstants::COLOR_RED);
+                return;
+            }
+            $cartItem->increment('quantidade');
+        } else {
+            $cliente_id = null;
+            //verifica se tem venda aberta e se tem cliente associado de ao menos 1 item no carrinho
+            $cartItemCliente = Carts::with('clientes')
+                ->where('user_id', $this->userId())
+                ->where('status' , 'ABERTO')->first();
+
+            //dd($cartItemCliente);
+            if ($cartItemCliente && $cartItemCliente->clientes->isNotEmpty()) {
+                $cliente_id = $cartItemCliente->clientes[0]->id;
+            }
+
+            $carts=[
+                'user_id' => $this->userId,
+                'produto_variation_id' => $produto->id,
+                'name' => $produto['produtos'][0]->descricao ." - " . $produto->variacao,
+                'price' => $produto->valor_varejo,
+                'codigo_produto' => $produto->subcodigo,
+                'quantidade' => 1,
+                'imagem' => count($produto->images) > 0 ? $produto->images[0]->path : "",
+                'cliente_id' =>$cliente_id
+            ];
+
+            Carts::create($carts);
+        }
+        $this->loadCartItemsTrait();
+        $this->emit("message", "Item adicionado com sucesso!", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN);
+        $this->emitTo('incluir-cart','cartUpdated');
+        $this->emitTo('total-sale','totalSaleVendaUpdated','');
+        $this->emitTo('incluir-totais','totaisUpdated');
+        $this->emit('refresh', true);
+        $this->barcode = "";
+
+    }
+
+    /**
      * Busca na base pelo cádigo do produto e adiciona no componente CART
      * @param $barcode
      * @param int $cant
      */
-    // public function ScanearCode($barcode, $cant = 1)
-    // {
 
-    //     $product = ProdutoVariacao::with('images','produtos')
-    //         ->where("subcodigo",$barcode)
-    //         ->where("status",1)
-    //         ->first();
+    /*public function ScanearCode($barcode, $cant = 1)
+     {
 
-    //     if($product == null || empty($product))
-    //     {
-    //             $this->emit("message", "Atenção! Produto não registrado!", IconConstants::ICON_SCAN,IconConstants::COLOR_RED);
-    //     }  else {
+         $product = ProdutoVariacao::with('images','produtos')
+             ->where("subcodigo",$barcode)
+             ->where("status",1)
+             ->first();
 
-    //             if($this->InCart($product->id))
-    //             {
-    //                     $this->IncreaseQuantity($product);
-    //                     return;
-    //             }
+         if($product == null || empty($product))
+         {
+                 $this->emit("message", "Atenção! Produto não registrado!", IconConstants::ICON_SCAN,IconConstants::COLOR_RED);
+         }  else {
 
-    //             if($product->quantidade <1)
-    //             {
-    //                 $this->emit("message", "Atenção! Estoque insuficiente!", IconConstants::ICON_ERROR,IconConstants::COLOR_RED);
-    //                 return;
-    //             }
+                 if($this->InCart($product->id))
+                 {
+                         $this->IncreaseQuantity($product);
+                         return;
+                 }
 
-    //             $this->carts = new Carts();
-    //             $this->carts->user_id = $this->userId;
-    //             $this->carts->produto_variation_id = $product->id;
-    //             $this->carts->name =  $product['produtos'][0]->descricao ." - " . $product->variacao;
-    //             $this->carts->codigo_produto = $product->subcodigo;
-    //             $this->carts->price = $product->valor_varejo;
-    //             $this->carts->quantidade = $cant;
-    //             $this->carts->imagem = count($product->images) > 0 ? $product->images[0]->path : "";
+                 if($product->quantidade <1)
+                 {
+                     $this->emit("message", "Atenção! Estoque insuficiente!", IconConstants::ICON_ERROR,IconConstants::COLOR_RED);
+                     return;
+                 }
 
-    //             $this->carts->save();
+                 $this->carts = new Carts();
+                 $this->carts->user_id = $this->userId;
+                 $this->carts->produto_variation_id = $product->id;
+                 $this->carts->name =  $product['produtos'][0]->descricao ." - " . $product->variacao;
+                 $this->carts->codigo_produto = $product->subcodigo;
+                 $this->carts->price = $product->valor_varejo;
+                 $this->carts->quantidade = $cant;
+                 $this->carts->imagem = count($product->images) > 0 ? $product->images[0]->path : "";
 
-    //            $this->loadCartItems();
+                 $this->carts->save();
 
-    //             if (!$this->cartItems->isEmpty()) {
-    //                 if (!$this->items[0]->clientes->isEmpty()) {
-    //                     $this->carts->cliente_id = $this->items[0]->clientes[0]->id;
-    //                 }
-    //             }
+                $this->loadCartItems();
+
+                 if (!$this->cartItems->isEmpty()) {
+                     if (!$this->items[0]->clientes->isEmpty()) {
+                         $this->carts->cliente_id = $this->items[0]->clientes[0]->id;
+                     }
+                 }
 
 
-    //             $this->emit("message", "Produto Adicionado!", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN,false,true);
-    //     }
-    // }
+                 $this->emit("message", "Produto Adicionado!", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN,false,true);
+         }
+     }*/
 
     /**
     * Gera o nímero do código da venda
@@ -102,10 +169,10 @@ trait CartTrait {
      * @param $product_id
      * @param int $cant
      */
-    public function IncreaseQuantity($product_id, $cant = 1)
+    public function increaseQuantityTrait($product_id, $cant = 1)
     {
             $product = Carts::with('variations')->where('produto_variation_id', $product_id)
-                    ->where('user_id',$this->userId)
+                    ->where('user_id',$this->userId )
                     ->where('status', 'ABERTO')
                     ->first();
 
@@ -125,10 +192,11 @@ trait CartTrait {
                 $product->quantidade++;
 
                 if($product->update()){
-                  //  $this->emit('scan-ok', "Produto atualizado com sucesso!");
                     $this->emit("message", "Quantidade adicionada com sucesso!", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN);
-                    $this->emitTo('cart-component','atualizarCarrinho');
+                    $this->emitTo('incluir-cart','cartUpdated');
                     $this->emitTo('total-sale','totalSaleVendaUpdated','');
+                    $this->emitTo('incluir-totais','totaisUpdated');
+                   // $this->emitTo('cart-component','atualizarCarrinho');
                 }else{
                     $this->emit("message", "Não foi possivel atualizar a venda!", IconConstants::ICON_ERROR,IconConstants::COLOR_RED);
                 }
@@ -136,29 +204,13 @@ trait CartTrait {
     }
 
     /**
-     * Passsa para o componente CART a solicitação para remover o item
-     * @param $productId
-     */
-    public function removeCartItem($productId)
-    {
-        $delete = Carts::find($productId)->delete();
-
-        if($delete){
-            $this->emit("message", "Produto removido!", IconConstants::ICON_REMOVE_CART,IconConstants::COLOR_RED);
-            $this->emit('refresh', true);
-        }else{
-            $this->emit("message", "Não foi possivel remover o produto!", IconConstants::ICON_ERROR,IconConstants::COLOR_RED);
-        }
-    }
-
-    /**
      * Decrementa a quantidade de produto no componente CART
      * @param $product_id
      */
-    public function decreaseQuantity($product_id){
+    public function decreaseQuantityTrait($product_id){
 
         $product = Carts::with('variations')->where('produto_variation_id', $product_id)
-            ->where('user_id',$this->userId)
+            ->where('user_id',$this->userId )
             ->where('status', 'ABERTO')
             ->first();
 
@@ -172,16 +224,35 @@ trait CartTrait {
             $product->quantidade--;
 
             if($product->update()){
-                //$this->emit('scan-ok', "Produto atualizado com sucesso!");
                 $this->emit("message", "Quantidade removida com sucesso!", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN);
-                $this->emitTo('cart-component','atualizarCarrinho');
+                $this->emitTo('incluir-cart','cartUpdated');
                 $this->emitTo('total-sale','totalSaleVendaUpdated','');
+                //$this->emitTo('cart-component','atualizarCarrinho');
+                $this->emitTo('incluir-totais','totaisUpdated');
             }else{
                 $this->emit("message", "Não foi possivel atualizar a venda!", IconConstants::ICON_ERROR,IconConstants::COLOR_RED);
             }
-           
+
         }
     }
+
+    /**
+     * Passsa para o componente CART a solicitação para remover o item
+     * @param $productId
+     */
+//    public function removeCartItem($productId)
+//    {
+//        $delete = Carts::find($productId)->delete();
+//
+//        if($delete){
+//            $this->emit("message", "Produto removido!", IconConstants::ICON_REMOVE_CART,IconConstants::COLOR_RED);
+//            $this->emit('refresh', true);
+//        }else{
+//            $this->emit("message", "Não foi possivel remover o produto!", IconConstants::ICON_ERROR,IconConstants::COLOR_RED);
+//        }
+//    }
+
+
 
     /**
      * Limpa o carrinho da venda
@@ -210,7 +281,7 @@ trait CartTrait {
     public function removeClientCartTrait(int $user_id, int $cliente_id){
 
         $items = Carts::
-                    where('user_id', $user_id)
+                    where('user_id', $this->userId )
                     ->where('cliente_id', $cliente_id)
                     ->where('status' , 'ABERTO')
                     ->get();
@@ -222,28 +293,56 @@ trait CartTrait {
        // $this->emit('global-msg', 'Cliente removido da venda, com sucesso!!');
     }
 
+    /**
+     * Remove o produto do carrinho
+     * @param $cartItemId
+     */
+    public function removeFromCartTrait($cartItemId)
+    {
+        Carts::find($cartItemId)->delete();
+
+        $this->loadCartItemsTrait();
+        $this->emit("message", "Item removido com sucesso!", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN);
+        $this->emitTo('incluir-cart','cartUpdated');
+        $this->emitTo('total-sale','totalSaleVendaUpdated','');
+        //$this->emitTo('cart-component','atualizarCarrinho');
+        $this->emitTo('incluir-totais','totaisUpdated');
+
+
+        if(count($this->cartItems) == 0)
+            $this->emit('refresh', true);
+    }
+
 
     /**
      * Função pincipal com os dados da venda
     */
-    public function loadCartItems()
+    public function loadCartItemsTrait()
     {
-        $this->cartItems =  Carts::with(['variations.produtos','clientes'])
-            ->where('user_id',  $this->userId )
+        $this->cartItems =  Carts::with(['variations.produtos','clientes','cashback'])
+            ->where('user_id',  $this->userId  )
             ->where('status',  'ABERTO' )
             ->orderBy('id','desc')
             ->get();
 
-       
-        //taxa do cliente
-        $taxa = $this->cartItems[0]->clientes[0]->taxa ?? 0;
+        /**
+         * Pega o cashback
+         * */
+        $cashbacks = $this->cashback();
+        if($cashbacks !== null){
+            $this->cashback =0;
+            foreach ($cashbacks as $cashback) {
+                $this->cashback += $cashback->valor;
+            }
+        }
 
         //verica se tem desconto
         $this->discount();
+        //Retorna os totais
+        $this->subTotal();
         //total geral
         $this->total();//$this->total = $this->subTotal()-$this->discount;
-        //Retorna os totais
-        $this->subTotal = $this->subTotal();
+
         $this->totalItens = count($this->cartItems);
     }
 
@@ -251,7 +350,7 @@ trait CartTrait {
      * Retorna o total da venda
      */
     public function total(){
-        $this->total = $this->subTotal()-$this->discount;
+        $this->total =  $this->subTotal -$this->discount - $this->cashback;
     }
 
     /***
@@ -259,23 +358,31 @@ trait CartTrait {
      */
     public function subTotal(){
         // Calculando o subtotal
-        $subTotal =  $this->cartItems->sum(function ($item) {
+        $this->subTotal = $this->cartItems->sum(function ($item) {
             return $item->quantidade * $item->price;
         });
-        return $subTotal;
     }
 
     /***
      * Retorna o desconto do produto na venda
      */
     public function discount(){
+        $this->discount = 0;
         //pega o desconto da venda
         foreach ($this->cartItems as $product) {
-            $this->discount = 0;
             if($product['quantidade'] < 5 && \floatval($product['variations'][0]['percentage'] > 0)){
                 //$this->discount += $product['variations'][0]['valor_varejo'] * $product['variations'][0]['percentage']/100;
                 $this->discount += $product['price'] * $product['variations'][0]['percentage']/100;
             }
+        }
+    }
+
+
+    public function cashback(){
+        foreach ($this->cartItems as $cartItem) {
+            return $cartItem->cashback->filter(function ($cashback) {
+                return $cashback->status == false;
+            });
         }
     }
 
@@ -287,14 +394,13 @@ trait CartTrait {
     {
         DB::beginTransaction();
 
-       
-        //dd($data);
+//        dd($data);
 
         $status = 'PAGO'; // valor que você deseja definir para o campo status
         $clienteId = null;
         $productsData = [];
         $productVariations =[];
-        $this->total =\floatval(\number_format($this->total,2));
+        //$this->total =\floatval(\number_format($this->total,2));
 
         try {
             //$cartTotal = $this->getTotalCartTraitByUser()['total'];
@@ -305,30 +411,35 @@ trait CartTrait {
 
             $sale = ["codigo_venda" => $data["codigo_venda"],
                 "loja_id" =>  $data["loja_id"],
-                "valor_total" => $this->total,
-                "usuario_id" =>  Auth::id(),//isset($dados["usuario_id"]) ? $dados["usuario_id"] : 3,
+                "valor_total" => $this->subTotal,
+                "usuario_id" =>  $this->userId ,//isset($dados["usuario_id"]) ? $dados["usuario_id"] : 3,
                 "cliente_id" =>  $clienteId,
                 "tipo_venda_id" => (int)$data['tipoVenda'],
                 "forma_entrega_id" => (int)$data['forma_entrega']
             ];
-            //dd($sale);
+
             //Salva a venda
             $sale = Vendas::create($sale);
-
-            //Pega a venda
-            //$this->cartItems = $this->getClientItemCartTrait();
-            //$this->loadCartItems();
 
             // extrai os IDs dos itens do carrinho para atualizar a tabela Carts, com venda_id e Status PAGO
             $ids = $this->cartItems->pluck('id')->toArray();
 
+            //dd($this->cartItems);
+
             foreach ($this->cartItems as $produto) {
+
+                $percentual_desconto = $produto['variations'][0]['percentage'];
+                if($produto['quantidade'] > 5 || count($this->cartItems) >= 10  ){
+                    $percentual_desconto = 0;
+                }
+
                 $productsData[] = [
                     'venda_id' => $sale->id,
                     'codigo_produto' => $produto['codigo_produto'],
                     'descricao' => $produto['name'],
                     'valor_produto' => floatval($produto['price']),
                     'quantidade' => $produto['quantidade'],
+                    'percentual_desconto' => $percentual_desconto,
                     'troca' => false,
                     'fornecedor_id' => $produto['variations'][0]['fornecedor'],
                     'categoria_id' => $produto['variations'][0]['produtos']['categoria_id']
@@ -355,7 +466,7 @@ trait CartTrait {
                 }
 
                 // Recupera todas as taxas necessárias de uma vez
-                $taxas = TaxaCartao::whereIn('forma_id', [$data['forma_pgto']])->pluck('valor_taxa', 'forma_id')->toArray();
+                $taxes = TaxaCartao::whereIn('forma_id', [$data['forma_pgto']])->pluck('valor_taxa', 'forma_id')->toArray();
 
                 // Prepara os dados para inserção em massa
                 $paymentTypesData = [];
@@ -364,34 +475,89 @@ trait CartTrait {
                         'venda_id' => $sale->id,
                         'forma_pagamento_id' => $data['forma_pgto'],
                         'valor_pgto' => $this->total,
-                        'taxa' => $taxas[$data['forma_pgto']] ?? 0
+                        'taxa' => $taxes[$data['forma_pgto']] ?? 0
                     ];
                 //}
-                // Inserção em massa
                 VendasProdutosTipoPagamento::insert($paymentTypesData);
 
-                 // Prepara os dados para inserção 
+                 // Prepara os dados para inserção dos descontos
                  $saleDiscountData[] = [
-                    'venda_id' => 1,
-                    'valor_desconto' => \floatval(\number_format($this->discount,2)),
-                    'valor_recebido' =>  \floatval(\number_format($data["valor_dinheiro"] ? $data["valor_dinheiro"] : 0)),
+                    'venda_id' => $sale->id,
+                    'valor_desconto' => $this->discount,
+                    'valor_recebido' =>  $data["valor_dinheiro"] ? $data["valor_dinheiro"] : 0,
                     'valor_percentual' => 0
                 ];
 
                 VendasProdutosDesconto::insert($saleDiscountData);
 
+                // Prepara os dados para inserção da entrega
+                $saleEntregaData[] = [
+                    'venda_id' => $sale->id,
+                    'forma_id' => $this->formaId,
+                    'valor_entrega' => $this->frete,
+                ];
+
+                VendasProdutosEntrega::insert($saleEntregaData);
+
+
+                //Salva o cashback
+                if(!empty($this->cartItems[0]['clientes'])){
+                    $cashbacks = Cashback::all();
+                    $taxa = 0.05;
+                    foreach ($cashbacks as $valor) {
+                        if ($valor->valor < $sale->valor_total-$this->discount) {
+                            $taxa = $valor->taxa;
+                        }
+                    }
+                    //DB::rollBack();
+                    //dd([$sale->valor_total,$this->discount,$this->total]);
+                    $valor_cashback = ($sale->valor_total-$this->discount * $taxa) / 100;
+
+                    $cashbackData[] = [
+                        'cliente_id' => $this->cartItems[0]['clientes'][0]['id'],
+                        'venda_id' => $sale->id,
+                        'valor' => $valor_cashback
+                    ];
+
+                    /**
+                     * Pega os dados dos cashback ativos do cliente
+                     * */
+                    $cashback_ids = [];
+                    $cashbacks = $this->cashback();
+                    if($cashbacks !== null){
+                        foreach ($this->cashback() as $cashback) {
+                            array_push($cashback_ids,$cashback->id);
+                        }
+                        //atualiza os cashbacks antigos para usado
+                        VendasCashBack::whereIn('id',$cashback_ids)->update(['status' => true]);
+                    }
+                    //Salva novo cashback
+                    VendasCashBack::insert($cashbackData);
+                }
+
             }
-
-
             // Confirmar a transação
             DB::commit();
+            $this->emit("message", "Venda realizada com sucesso. ", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN,true);
         } catch (\Exception $e) {
             // Reverter a transação em caso de erro
             DB::rollBack();
             $this->emit("message", " Falha ao fechar venda. ". $e->getMessage(), IconConstants::ICON_ERROR,IconConstants::COLOR_RED);
         }
-        $this->emit("message", "Venda realizada com sucesso. ", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN,true);
+
     }
 
+    public function getImageUrl($item)
+    {
+        $url = 'http://127.0.0.1/api-loja-new-git/public/storage/produtos';
+        if($item->imagem){
+            return $url.'/'.$item->imagem;
+        }else{
+            return $url.'/not-image.png';
+        }
+    }
 
+    public function userId(){
+        return Auth::guard('customer')->id();
+    }
 }

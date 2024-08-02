@@ -11,6 +11,9 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class AuthenticatedSessionController extends Controller
@@ -40,7 +43,7 @@ class AuthenticatedSessionController extends Controller
 
         return redirect()->route('home');
 
-      //  return redirect()->intended(RouteServiceProvider::HOME);
+       //return redirect()->intended(RouteServiceProvider::HOME);
     }
 
     /**
@@ -51,7 +54,7 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request)
     {
-        Auth::guard('web')->logout();
+        Auth::guard('customer')->logout();
 
         $request->session()->invalidate();
 

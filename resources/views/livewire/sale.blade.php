@@ -32,21 +32,13 @@
                     </div>
                 </div>
             </div>
+            <!-- Input de dinheiro-->
             <div class="col-md-2 p-0 ml-0" style="width: 180px;display: none" id="card_dinheiro" wire:ignore>
-                <div class="card mb-2 mb-2 p-0 ml-0">
-                    <div class="card-header bg-primary text-white text-center">
-                        Valor Dinheiro
-                    </div>
-                    <div class="card-body text-monospace">
-                        <input type="text" name="dinheiro" id="dinheiro" class="form-control" wire:ignore
-                               placeholder="Valor Dinheiro" aria-label="Valor Dinheiro" aria-describedby="Valor Dinheiro"
-                               wire:model="valorRecebido" data-prefix="R$ " data-thousands="." data-decimal=","/>
-                    </div>
-                </div>
+                @livewire('card-dinheiro')
             </div>
             <!-- Forma de entrega -->
             <div class="col-md-3 p-0 ml-0" >
-                   @livewire('forma-entrega')
+                @livewire('forma-entrega')
             </div>
         </div>
         <!-- Lista de produtos com imagens -->
@@ -67,18 +59,13 @@
                         </thead>
                         <tbody>
                             @foreach($cartItems as $item)
-                                @if(!empty($item->imagem))
-                                    <?php
-                                    /** @var TYPE_NAME $item */
-                                    $image = asset(env("URL_IMAGE").'/public/storage/'.$item->imagem);
-                                    ?>
-                                @else
-                                    <?php
-                                    $image = asset(env('URL_IMAGE') . '/public/storage/produtos/not-image.png');
-                                    ?>
-                                @endif
                                 <tr>
-                                    <td><img src="{{$image}}" alt="{{$item->name}}" title="{{$item->name}}" data-toggle="tooltip" data-placement="top" class="product-img rounded"></td>
+                                    <td class="p-1" style="width: 120px;">
+                                        <img src="{{$this->getImageUrl($item)}}"
+                                             alt="{{$item->name}}"
+                                             title="{{$item->name}}" data-toggle="tooltip" data-placement="top"
+                                             class="product-img rounded " wire:ignore/>
+                                    </td>
                                     <td>
                                         <span class="product-name">{{$item->codigo_produto}} - {{$item->name}}</span>
                                     </td>
@@ -100,7 +87,7 @@
         </div>
         <!-- Total da venda -->
         <div class="row">
-            <div class="card mb-3 p-0 ml-0">
+            <div class="card mb-2 p-0 ml-0">
                 <div class="card-header bg-primary text-white text-center">
                     Frete
                 </div>
@@ -111,17 +98,17 @@
                 </div>
             </div>
 
-            <div class="card mb-3 p-0 ml-0">
+            <div class="card mb-2 p-0 ml-0">
                 <div class="card-header bg-primary text-white text-center">
                     Troco
                 </div>
                 <div class="card-body">
                     <div class="total-container text-center">
-                        <span class="total-value d-block">R$ {{number_format($troco,2,",",".")}}</span>
+                        <span class="total-value d-block {{$css}}">R$ {{number_format($troco,2,",",".")}}</span>
                     </div>
                 </div>
             </div>
-            <div class="card mb-3 p-0 ml-0">
+            <div class="card mb-2 p-0 ml-0">
                 <div class="card-header bg-primary text-white text-center">
                     Cashback
                 </div>
@@ -131,7 +118,7 @@
                     </div>
                 </div>
             </div>
-            <div class="card mb-3 p-0 ml-0">
+            <div class="card mb-2 p-0 ml-0">
                 <div class="card-header bg-primary text-white text-center">
                     Descontos
                 </div>
@@ -143,11 +130,19 @@
             </div>
         </div>
         <div class="row">
-            <div class="card mb-3 p-0 ml-0">
-                <div class="card-header bg-success text-white text-center">
-                    <h4>TOTAL GERAL</h4>
+            <div class="p-1" style="display: none" id="divMsgValorNegativo">
+                <span class="alert alert-danger d-block mt-2 text-center">
+                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-circle-fill" viewBox="0 0 16 16">
+                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.93 4.577a.5.5 0 0 0-1.853.034L7 6.077v3.905l.076.355a.5.5 0 0 0 .922 0L8 10.77V6.076l-.07-.285zM8 13.5a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
+                    </svg>
+                    <b>Atenção!</b> Venda não pode ser finalizada com valor negativo!
+                </span>
+            </div>
+            <div class="card mb-2 p-0 ml-0">
+                <div class="card-header bg-success text-white text-center p-2">
+                    <span class="total-text">TOTAL GERAL</span>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-0">
                     <div class="total-container text-center">
                         <span class="total-value total-card d-block">R$ {{number_format($total,2,",",".")}}</span>
                     </div>

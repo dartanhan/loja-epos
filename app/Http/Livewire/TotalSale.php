@@ -13,23 +13,27 @@ class TotalSale extends Component
     public $cartItems = [];
     public $userId;
     public $discount =0;
+    public $subTotal=0;
+    public $cashback=0;
 
     protected $listeners = ['totalSaleVendaUpdated' => 'handleTotalSaleVendaUpdated'];
 
     public function mount(){
-        $this->userId = Auth::id();
-        $this->loadCartItems();
+        $this->userId = $this->userId();
+        $this->loadCartItemsTrait();
     }
 
     /***
      *  //taxa do cliente caso a entrega seja motoby loja soma no total
      */
     public function handleTotalSaleVendaUpdated($formaEntrega){
-       
+        $this->loadCartItemsTrait();
+
         if ($formaEntrega == 'motoboy-loja') {
-          $this->total += $this->cartItems[0]->clientes[0]->taxa ?? 0;
+            $this->total += $this->cartItems[0]->clientes[0]->taxa ?? 0;
         }else{
-            $this->total();
+            $this->total()-$this->discount();
+            $this->subTotal = $this->subTotal();
         }
     }
 

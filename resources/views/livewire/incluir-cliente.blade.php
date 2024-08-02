@@ -1,4 +1,4 @@
-<div>
+<div xmlns:wire="http://www.w3.org/1999/xhtml">
 
     @if($cartItems->isNotEmpty() && optional($cartItems->first()->clientes)->isNotEmpty())
         <span class="ml-3 text-danger remover-cliente-associado" title="Clique para remover o Cliente" data-toggle="tooltip"

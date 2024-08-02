@@ -11,27 +11,27 @@ class Sale extends Component
 {
     use CartTrait;
     public $userId;
-    public $cartItems;
+    public $cartItems=[];
     public $total;
     public $paymentMethods = [];
     public $selectedItemFormaPgto = false;
     public $codeSale;
     public $tipo_venda_id;
     public $troco=0;
-    public $valorRecebido;
     public $dinheiro;
     public $discount;
     public $cashback=0;
     public $frete=0;
+    public $formaId;
+    public $css;
 
-
-    protected $listeners = ['vendaUpdated' => 'handleVendaUpdated',
+    protected $listeners = ['vendaUpdated' => 'handleVendaUpdated','loadSales' => 'mount',
         'tipoVenda'=>'tipoVenda','storeSale'=>'storeSale','updatedValorRecebido' => 'updatedValorRecebido'];
 
     public function mount($code = null)
     {
-        $this->userId = Auth::id();
-        $this->loadCartItems();
+        $this->userId = $this->userId();
+        $this->loadCartItemsTrait();
         $this->loadPaymentMethods();
         $this->codeSale = $code;
     }
@@ -58,22 +58,26 @@ class Sale extends Component
     public function updatedSelectedItemFormaPgto($value)
     {
         $this->emit('formaPgtoChanged', $value);
+
     }
 
     /**
      * Altera o valor total caso tenha selecionado na entrega o motoboy da loja, pega taxa fixa de entrega
      * @param $typeSale
+     * @param $formaId
      */
-    public function handleVendaUpdated($typeSale){
-        //dd($typeSale);
-        $this->loadCartItems();
+    public function handleVendaUpdated($typeSale,$formaId=null){
+       // dd([$typeSale,$formaId]);
+       // $this->loadCartItemsTrait();
+        $this->formaId = $formaId;
         $this->frete = 0;
         if($typeSale == 'motoboy-loja'){
             if ($this->cartItems->isNotEmpty() && optional($this->cartItems->first()->clientes)->isNotEmpty()){
                 $this->total += $this->cartItems[0]->clientes[0]->taxa;
                 $this->frete = $this->cartItems[0]->clientes[0]->taxa;
-               // $this->emitTo('cart-component','atualizarCarrinho');
             }
+        }else {
+            $this->total();
         }
     }
 
@@ -98,9 +102,12 @@ class Sale extends Component
         $this->troco = $this->dinheiro > 0 ? $this->dinheiro - $this->total : 0;
         if($this->troco < 0){
             $this->emit('btn-finalizar-venda',false, $this->dinheiro);
+            $this->css = 'text-red';
         }else{
             $this->emit('btn-finalizar-venda',true, $this->dinheiro);
+            $this->css = '';
         }
+
     }
 
     /**

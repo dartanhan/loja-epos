@@ -133,6 +133,7 @@
      * Finalizar venda
      * *********************/
     function finalizeSale(codigo_venda) {
+        message("Aguarde! Finalizando a venda!", "info");
         let forma_entrega_id = null;
         const tipo_venda = document.getElementById('tipoVenda');
         const forma_pgto = document.getElementById('formaPgto');
@@ -273,7 +274,7 @@
      * Ativa ou desativa o botão de finalizar venda
      * */
     function btnFinalizarVenda(acao,value){
-        console.log("btnFinalizarVenda acao >> " + acao, "btnFinalizarVenda value >>" + value);
+       // console.log("btnFinalizarVenda acao >> " + acao, "btnFinalizarVenda value >>" + value);
 
         const finalizarVendaBtns = document.querySelectorAll('.btn-finalizar-venda');
         const divMsgValorNegativo = document.getElementById('divMsgValorNegativo');
@@ -389,7 +390,7 @@
                 backdrop: 'static',  // Disables closing the modal by clicking outside of it
                 keyboard: false      // Disables closing the modal with the ESC key
             }).modal('show');
-
+            window.livewire.emitTo('sale','loadSales'); //atualiza os dados do modal
         });
 
         $('#openMenu').on('click', function () {
@@ -476,9 +477,6 @@ function Confirm(id, eventName, text) {
 
     });
 }
-
-
-
 
 // Livewire.on('scan-code-byid', postId => {
 //     Snackbar.show({
