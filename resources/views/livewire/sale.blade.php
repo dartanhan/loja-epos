@@ -33,7 +33,7 @@
                 </div>
             </div>
             <!-- Input de dinheiro-->
-            <div class="col-md-2 p-0 ml-0" style="width: 180px;display: none" id="card_dinheiro" wire:ignore>
+            <div class="col-md-2 p-0 ml-0" style="width: 180px;">
                 @livewire('card-dinheiro')
             </div>
             <!-- Forma de entrega -->

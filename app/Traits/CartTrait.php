@@ -4,6 +4,8 @@ namespace App\Traits;
 use App\Constants\IconConstants;
 use App\Http\Models\Carts;
 use App\Http\Models\Cashback;
+use App\Http\Models\FormaPagamento;
+use App\Http\Models\Loja;
 use App\Http\Models\ProdutoVariacao;
 use App\Http\Models\TaxaCartao;
 use App\Http\Models\VendaProdutos;
@@ -12,10 +14,16 @@ use App\Http\Models\VendasCashBack;
 use App\Http\Models\VendasProdutosDesconto;
 use App\Http\Models\VendasProdutosEntrega;
 use App\Http\Models\VendasProdutosTipoPagamento;
+use Carbon\Carbon;
 use Darryldecode\Cart\Facades\CartFacade as Cart;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Session;
+use Mike42\Escpos\PrintConnectors\NetworkPrintConnector;
+use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
+use Mike42\Escpos\Printer;
+use PHPUnit\Framework\Constraint\Count;
 
 
 trait CartTrait {
@@ -393,8 +401,7 @@ trait CartTrait {
     public function storeSaleTrait($data)
     {
         DB::beginTransaction();
-
-//        dd($data);
+        $this->printSale($data);
 
         $status = 'PAGO'; // valor que você deseja definir para o campo status
         $clienteId = null;
@@ -468,7 +475,7 @@ trait CartTrait {
                 // Recupera todas as taxas necessárias de uma vez
                 $taxes = TaxaCartao::whereIn('forma_id', [$data['forma_pgto']])->pluck('valor_taxa', 'forma_id')->toArray();
 
-                // Prepara os dados para inserção em massa
+                // Prepara os dados para gravar  forma de pagamento
                 $paymentTypesData = [];
                 //for ($i = 0; $i < $totalPayment; $i++) {
                     $paymentTypesData[] = [
@@ -538,14 +545,150 @@ trait CartTrait {
             }
             // Confirmar a transação
             DB::commit();
-            $this->emit("message", "Venda realizada com sucesso. ", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN,true);
+
         } catch (\Exception $e) {
             // Reverter a transação em caso de erro
             DB::rollBack();
             $this->emit("message", " Falha ao fechar venda. ". $e->getMessage(), IconConstants::ICON_ERROR,IconConstants::COLOR_RED);
+        } finally {
+            $this->printSale($data);
+            $this->emit("message", "Venda realizada com sucesso. ", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN,true);
+        }
+    }
+
+
+    private function printer($texto){
+        try {
+            $connector = new NetworkPrintConnector("192.168.0.200", 9100);
+
+            /* Print a "Hello world" receipt" */
+            $printer = new Printer($connector);
+
+            $printer -> initialize();
+            $printer -> setFont(1);
+            $printer -> setLineSpacing(4);
+            $printer -> setJustification(0);
+            $printer -> selectCharacterTable(3);
+
+            $printer -> text($texto);
+            $printer ->feed(2);
+            $printer -> cut();
+
+            /* Close printer */
+            $printer -> close();
+
+        } catch (\Exception $e) {
+           // echo "Couldn't print to this printer: " . $e -> getMessage() . "\n";
+            $this->emit("message", "Error. " .  $e -> getMessage() , IconConstants::ICON_ERROR,IconConstants::COLOR_RED);
+
+        }
+    }
+
+    /**
+     * Imprimir a venda
+     * @param $data
+     */
+    public function printSale($data){
+        //dd($data);
+        $cupom = '';
+        try {
+
+            $enterprise = Loja::where('id',$data['loja_id'])->where("status",true)->first();
+            $formaPagamento = FormaPagamento::where('id',$data['forma_pgto'])->where("status",true)->first();
+            $vendedor = auth()->user()->sexo =='M' ? "Vendedor: " : "Vendedora: ";
+
+            $formatter = new \NumberFormatter('pt_BR',  \NumberFormatter::CURRENCY);
+
+            $conteudoCupom = '';
+            foreach ($this->cartItems as $item){
+                $conteudoCupom .= $this->formataEspacos($item->name,25,'D');
+                $conteudoCupom .= $formatter->formatCurrency($item->price, 'BRL') . '      ';
+                $conteudoCupom .= $item->quantidade . '     ';
+                $conteudoCupom .= $formatter->formatCurrency($item->price*$item->quantidade, 'BRL') . "\n\r";
+            }
+
+          /*  $cupom =  "                       " .$enterprise->razao . "\n\r"
+            . "      " . $enterprise->endereco . " - " . $enterprise->local . "\n\r";
+            $this->printer($cupom);
+            return;*/
+
+
+            $cupom =  "                       " .$enterprise->razao . "\n\r"
+                . "      " . $enterprise->endereco . " - " . $enterprise->local . "\n\r"
+                . "      Data: " . Carbon::now()->format("d/m/Y H:i:s") . " Tel: " . $enterprise->telefone . "\n\r"
+                . "                    Santa Cruz, Rio de Janeiro-RJ \n\r"
+                . "----------------------------------------------------------------\n\r"
+                . "                        CUPOM NÃO FISCAL                       \n\r"
+                . "----------------------------------------------------------------\n\r"
+                . "ITEM DESCRIÇÃO            VALOR           QTD         TOTAL     \n\r"
+                . "----------------------------------------------------------------\n\r"
+                . $conteudoCupom
+                . "----------------------------------------------------------------\n\r"
+                . "TOTAL DE ITENS                                        " . $this->totalItens . "\n\r"
+                . "SUB TOTAL                                             " . $formatter->formatCurrency($this->subTotal, 'BRL') . "\n\r"
+                . "DESCONTO                                              " . $formatter->formatCurrency($this->discount, 'BRL') . "\n\r"
+                . "CASHBACK                                              " . $formatter->formatCurrency($this->cashback, 'BRL'). "\n\r"
+                . "TOTAL                                                 " . $formatter->formatCurrency($this->subTotal-$this->discount-$this->cashback, 'BRL'). "\n\r"
+                . "FRETE                                                 " . $formatter->formatCurrency($this->frete, 'BRL'). "\n\r"
+                . "----------------------------------------------------------------\n\r"
+                . "VALOR A PAGAR                                    " . $formatter->formatCurrency($this->total, 'BRL'). "\n\r"
+                . "----------------------------------------------------------------\n\r"
+                . "FORMA DE PAGAMENTO                             $formaPagamento->nome \n\r"
+                . "VALOR RECEBIDO                                   " . $formatter->formatCurrency($this->dinheiro, 'BRL'). "\n\r"
+                . "TROCO                                            " . $formatter->formatCurrency($this->troco, 'BRL') . "\n\r"
+                . "----------------------------------------------------------------\n\r"
+                . $vendedor.auth()->user()->nome ."      |        Codigo Venda: ".$data['codigo_venda'] . "\n\r"
+                . "----------------------------------------------------------------\n\r"
+                . "     PRAZO DE 7 DIAS PARA TROCA MEDIANTE ESTA NOTA       \n\r"
+                . "      (somente com defeito de fabrica ou sem uso)        \n\r"
+                . "  Nao trocamos produtos de promocao,peliculas,esmaltes,  \n\r"
+                . "                   cilios,pincas,colas!                  \n\r"
+                . "            Eletronicos 30 dias para troca!              \n\r"
+                . "                Nao devolvemos dinheiro!                 \n\r"
+                . "                OBRIGADA E VOLTE SEMPRE                  \n\r\n\r \f ";
+
+        } catch (\Exception $e) {
+              $this->emit("global-error", " Falha na impressão da venda. ". $e->getMessage());
+        } finally {
+            $this->printer($cupom);
+            $this->emit("message", "Impressão da Venda realizada com sucesso! ", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN,false);
         }
 
     }
+
+    private function formataEspacos($string, int $total,  $lado) {
+		$totalLen = strlen($string);
+
+		$tam_valor = $total - $totalLen;
+		$espacos = "";
+
+        for ($i = 0; $i < $tam_valor; $i++) {
+			$espacos .= " ";
+		}
+
+        if ($lado == "D") {
+            $retorno = $string.$espacos;
+        } else {
+            $retorno = $espacos.$string;
+        }
+        return $retorno;
+        }
+
+    private function comando() {
+
+        $GS = "\x1d";//chr(29);
+        $ESC = "\x1b";//chr(27);
+
+        $COMMAND  = $ESC." @ ";
+        $COMMAND .= $ESC." M ".chr(1); // Select character font: Font B 1(EPSON) ou 49( BEMATECH)
+		$COMMAND .= $ESC." R ".chr(0); //Select an international character set EPSON / BEMATECH
+		$COMMAND .= $ESC." a ".chr(0); // Select justification: Left justification n = 0, "0": Left justificationn = "1": Centeringn = 2, "2": Right justification
+		$COMMAND .= $ESC." t ".chr(2); //tabela de código 3 PC860: Portuguese
+
+		$COMMAND .= $GS." V " . chr(66) . chr(0);// cut partial
+
+		return $COMMAND;
+	}
 
     public function getImageUrl($item)
     {

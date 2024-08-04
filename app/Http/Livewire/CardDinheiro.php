@@ -15,7 +15,7 @@ class CardDinheiro extends Component
     public $discount =0;
     public $subTotal=0;
 
-    protected $listeners = ['totalSaleVendaUpdated' => 'handleTotalSaleVendaUpdated'];
+
 
     public function mount(){
 

@@ -145,7 +145,7 @@
             forma_entrega_id = forma_entrega.value;
         }
 
-        console.log(codigo_venda, 'tipoVenda', tipo_venda.value,'forma_pgto', forma_pgto.value,'forma_entrega', forma_entrega_id);
+       // console.log(codigo_venda, 'tipoVenda', tipo_venda.value,'forma_pgto', forma_pgto.value,'forma_entrega', forma_entrega_id);
         //gero um json
         const data = {'codigo_venda' : codigo_venda,
                         'tipoVenda' : tipo_venda.value,
@@ -196,7 +196,7 @@
         });
 
         /**
-         * Mensagem padrão de sucesso
+         * Mensagem padrão
          *  * */
         window.livewire.on('message', (msg,icon,color,reload=false,focusInput=false) => {
             noty(msg,color,icon);

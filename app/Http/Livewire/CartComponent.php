@@ -46,10 +46,10 @@ class CartComponent extends Component {
         $this->products = ProdutoVariacao::with('images')->where(function($query) {
             $query->where('variacao', 'like', '%' . $this->searchTerm . '%')
                 ->orWhere('subcodigo', 'like', '%' . $this->searchTerm . '%')
-                ->orWhere('loja_produtos_new.descricao', 'like', '%' . $this->searchTerm . '%');
+                ->orWhere('descricao', 'like', '%' . $this->searchTerm . '%');
         })->where('quantidade', '>', 0)
-            ->join('loja_produtos_new', 'loja_produtos_new.id', '=', 'loja_produtos_variacao.products_id')
-            ->select('loja_produtos_variacao.*', 'loja_produtos_new.descricao as produto_descricao',  'loja_produtos_new.categoria_id', 'loja_produtos_new.fornecedor_id')
+            ->join('loja_produtos_new as lpn', 'lpn.id', '=', 'loja_produtos_variacao.products_id')
+            ->select('loja_produtos_variacao.*', 'lpn.descricao as produto_descricao',  'lpn.categoria_id', 'lpn.fornecedor_id')
             ->where('loja_produtos_variacao.status',true)
             ->orderBy('variacao', 'asc')->take(10)->get();
 

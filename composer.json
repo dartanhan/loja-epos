@@ -6,6 +6,7 @@
     "license": "MIT",
     "require": {
         "php": "^7.3|^8.0",
+        "ext-intl": "*",
         "ext-json": "*",
         "darryldecode/cart": "^4.2",
         "fruitcake/laravel-cors": "^2.0",
@@ -14,9 +15,8 @@
         "laravel/sanctum": "^2.11",
         "laravel/tinker": "^2.5",
         "livewire/livewire": "^2.12",
-        "owen-it/laravel-auditing": "^13.6",
-      "ext-intl": "*",
-        "ext-http": "*"
+        "mike42/escpos-php": "^4.0",
+        "owen-it/laravel-auditing": "^13.6"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.7",
