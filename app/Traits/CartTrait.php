@@ -78,6 +78,7 @@ trait CartTrait {
                 'imagem' => count($produto->images) > 0 ? $produto->images[0]->path : "",
                 'cliente_id' =>$cliente_id
             ];
+            //dd($carts);
 
             Carts::create($carts);
         }
@@ -86,7 +87,7 @@ trait CartTrait {
         $this->emitTo('incluir-cart','cartUpdated');
         $this->emitTo('total-sale','totalSaleVendaUpdated','');
         $this->emitTo('incluir-totais','totaisUpdated');
-        $this->emit('refresh', true);
+        //$this->emit('refresh', true);
         $this->barcode = "";
 
     }
@@ -628,15 +629,19 @@ trait CartTrait {
                 . "SUB TOTAL                                             " . $formatter->formatCurrency($this->subTotal, 'BRL') . "\n\r"
                 . "DESCONTO                                              " . $formatter->formatCurrency($this->discount, 'BRL') . "\n\r"
                 . "CASHBACK                                              " . $formatter->formatCurrency($this->cashback, 'BRL'). "\n\r"
-                . "TOTAL                                                 " . $formatter->formatCurrency($this->subTotal-$this->discount-$this->cashback, 'BRL'). "\n\r"
+                . "TOTAL                                                 " . $formatter->formatCurrency($this->total, 'BRL'). "\n\r"
                 . "FRETE                                                 " . $formatter->formatCurrency($this->frete, 'BRL'). "\n\r"
                 . "----------------------------------------------------------------\n\r"
                 . "VALOR A PAGAR                                    " . $formatter->formatCurrency($this->total, 'BRL'). "\n\r"
                 . "----------------------------------------------------------------\n\r"
-                . "FORMA DE PAGAMENTO                             $formaPagamento->nome \n\r"
-                . "VALOR RECEBIDO                                   " . $formatter->formatCurrency($this->dinheiro, 'BRL'). "\n\r"
-                . "TROCO                                            " . $formatter->formatCurrency($this->troco, 'BRL') . "\n\r"
-                . "----------------------------------------------------------------\n\r"
+                . "FORMA DE PAGAMENTO                             $formaPagamento->nome \n\r";
+                
+                if($this->dinheiro > 0){
+                    $cupom .= "VALOR RECEBIDO                            " . $formatter->formatCurrency($this->dinheiro, 'BRL'). "\n\r";
+                    $cupom .= "TROCO                                     " . $formatter->formatCurrency($this->troco, 'BRL') . "\n\r";
+                }
+                
+                $cupom .= "----------------------------------------------------------------\n\r"
                 . $vendedor.auth()->user()->nome ."      |        Codigo Venda: ".$data['codigo_venda'] . "\n\r"
                 . "----------------------------------------------------------------\n\r"
                 . "     PRAZO DE 7 DIAS PARA TROCA MEDIANTE ESTA NOTA       \n\r"
@@ -692,7 +697,7 @@ trait CartTrait {
 
     public function getImageUrl($item)
     {
-        $url = 'http://127.0.0.1/api-loja-new-git/public/storage/produtos';
+        $url = 'http://127.0.0.1/'.env('URL_IMAGE').'/public/storage/produtos';
         if($item->imagem){
             return $url.'/'.$item->imagem;
         }else{

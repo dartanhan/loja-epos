@@ -111,6 +111,10 @@
             <div class="card mb-2 p-0 ml-0">
                 <div class="card-header bg-primary text-white text-center">
                     Cashback
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="flexSwitchCheckDefault">
+                        <label class="form-check-label" for="flexSwitchCheckDefault">Utilizar o Cashback</label>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="total-container text-center">
