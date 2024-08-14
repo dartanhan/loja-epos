@@ -359,8 +359,12 @@ trait CartTrait {
      * Retorna o total da venda
      */
     public function total(){
-        //$this->total =  $this->subTotal -$this->discount - $this->cashback;
-        $this->total =  $this->subTotal -$this->discount;
+        $this->total =  $this->subTotal - $this->discount;
+
+        //Caso o cashback seja true dimiminui da venda o valor
+        if($this->hasCashback){
+            $this->total =  $this->subTotal - $this->discount - $this->cashback;
+        }        
     }
 
     /***
@@ -387,7 +391,9 @@ trait CartTrait {
         }
     }
 
-
+    /***
+     * Retorna o status do cashback
+     */
     public function cashback(){
         foreach ($this->cartItems as $cartItem) {
             return $cartItem->cashback->filter(function ($cashback) {

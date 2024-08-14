@@ -12,7 +12,16 @@
             <span class="valorTotais">R$ {{ number_format($discount , 2,",",".") }}</span>
         </div>
         <div class="d-flex justify-content-between mb-2">
-            <span><b>Cashback</b></span>
+            <span>
+                <b>
+                    Cashback  
+                        @if($cashback > 0)
+                            <span class="cursor" data-toggle="tooltip" data-placement="top" title="Atenção! Cliente possui cashback disponível!">
+                                <i class="fa-regular fa-circle-question fa-fade"></i>
+                            </span>
+                        @endif
+                </b>
+            </span>
             <span class="valorTotais">R$ {{ number_format($cashback , 2,",",".") }}</span>
         </div>
 </div>

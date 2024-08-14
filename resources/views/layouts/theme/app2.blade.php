@@ -16,7 +16,8 @@
         <link href="{{ asset('plugins/notification/snackbar/snackbar.min.css') }}" rel="stylesheet" type="text/css" />
         <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
         <link href="{{ asset('plugins/font-icons/fontawesome/css/fontawesome.css') }}" rel="stylesheet" type="text/css">
-       
+        <link href="{{ asset('css/chosen.css') }}" rel="stylesheet" type="text/css">
+
         <!-- BEGIN GLOBAL MANDATORY STYLES -->
         <link href="{{ asset('css/styles.css') }}" rel="stylesheet" type="text/css">
         <!-- END PAGE LEVEL PLUGINS/CUSTOM STYLES -->

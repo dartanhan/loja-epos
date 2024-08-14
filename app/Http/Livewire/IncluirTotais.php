@@ -15,6 +15,7 @@ class IncluirTotais extends Component
     public $total;
     public $subTotal;
     public $cashback=0;
+    public $hasCashback = false;  // Estado inicial do switch
 
     protected $listeners = ['totaisUpdated' => 'handleTotaisUpdated'];
 

@@ -45,7 +45,7 @@
                             </td>
                             <td>
                                 @if($item->quantidade < 5 && $item->variations[0]->percentage > 0)
-                                    <span class="item-description text-red"
+                                    <span class="item-description text-red cursor"
                                           data-toggle="tooltip" data-placement="top"
                                           title="Atenção! Produto elegível com desconto da loja, somente para valor no varejo!" wire:ignore>
                                             <i class="fa-regular fa-circle-question fa-fade"></i>

@@ -11,6 +11,7 @@
 <script src="{{URL::asset('js/url.js')}}"></script>
 <script src="{{URL::asset('plugins/input-mask/jquery.maskMoney.min.js')}}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+<script src="{{URL::asset('js/chosen.jquery.js')}}"></script>
 
 
 <script>
@@ -35,9 +36,8 @@
     }
 
     $(document).ready(function() {
-        $('[data-toggle="tooltip"]').tooltip();
-
-
+       // $('[data-toggle="tooltip"]').tooltip();
+      
     /***
      * PESQUISA DE PRODUTOS
      * */
@@ -268,6 +268,7 @@
      * */
     function activateTooltipsAndFormatting() {
         $('[data-toggle="tooltip"]').tooltip();
+        $('.chosen-select').chosen();
     }
 
     /**
@@ -301,6 +302,7 @@
         activateTooltipsAndFormatting();
         window.livewire.hook('message.processed', (message, component) => {
             activateTooltipsAndFormatting();
+
         });
 
         /**

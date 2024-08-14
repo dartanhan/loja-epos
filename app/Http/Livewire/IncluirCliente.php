@@ -13,6 +13,7 @@ class IncluirCliente extends Component
     public $userId;
     public $discount;
     public $cashback=0;
+    public $hasCashback = false;  // Estado inicial do switch
 
     protected $listeners = ['atualizarCliente' => 'mount'];
 

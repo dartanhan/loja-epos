@@ -15,6 +15,7 @@ class TotalSale extends Component
     public $discount =0;
     public $subTotal=0;
     public $cashback=0;
+    public $hasCashback =false;  // Estado inicial do switch
 
     protected $listeners = ['totalSaleVendaUpdated' => 'handleTotalSaleVendaUpdated'];
 
@@ -26,14 +27,19 @@ class TotalSale extends Component
     /***
      *  //taxa do cliente caso a entrega seja motoby loja soma no total
      */
-    public function handleTotalSaleVendaUpdated($formaEntrega){
+    public function handleTotalSaleVendaUpdated($formaEntrega,$hasCashback){
         $this->loadCartItemsTrait();
 
+        //atualiza a variável do $hasCashback
+        $this->hasCashback = $hasCashback;
+
+        //verifica se é motoboy da loja
         if ($formaEntrega == 'motoboy-loja') {
             $this->total += $this->cartItems[0]->clientes[0]->taxa ?? 0;
         }else{
-            $this->total()-$this->discount();
-            $this->subTotal = $this->subTotal();
+            $this->total();//-$this->discount();
+            $this->subTotal();
+            //$this->subTotal = $this->subTotal();
         }
     }
 

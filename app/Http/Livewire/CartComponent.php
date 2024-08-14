@@ -27,6 +27,7 @@ class CartComponent extends Component {
     public $total=0;
     public $subTotal=0;
     public $cashback=0;
+    public $hasCashback = false;  // Estado inicial do switch
 
     protected $listeners = ['atualizarCarrinho' => 'render',
                             'addToCart' => 'addToCart',

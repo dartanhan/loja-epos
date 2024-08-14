@@ -17,13 +17,13 @@
             </div>
 
             <!-- Forma de pagamento -->
-            <div class="p-0 ml-0" style="flex: 0 0 auto;width: 28%;" wire:ignore>
+            <div class="p-0 ml-0" style="flex: 0 0 auto;width: 28%;">
                 <div class="card mb-2 p-0 ml-0">
                     <div class="card-header text-monospace text-center bg-primary text-white">
                         Forma de Pagamento
                     </div>
                     <div class="card-body text-monospace p-2">
-                        <select wire:model="selectedItemFormaPgto" class="form-select mb-2 p-1" id="formaPgto">
+                        <select  class="form-select mb-2 p-1 chosen-select" id="formaPgto" multiple>
                             <option value="">Selecione?</option>
                             @foreach($paymentMethods as $payment)
                                 <option value="{{ $payment->id }}" data-slug="{{$payment->slug}}">{{ $payment->nome }}</option>
@@ -32,6 +32,7 @@
                     </div>
                 </div>
             </div>
+            
             <!-- Input de dinheiro-->
             <div class="col-md-2 p-0 ml-0" style="width: 180px;">
                 @livewire('card-dinheiro')
@@ -78,8 +79,8 @@
                                             <span class="cart-product-img"
                                                   style="background-image: url('{{ $this->getImageUrl($item) }}'); opacity: 1;"
                                                   data-toggle="tooltip" data-placement="top" title="{{ $item->name }}">
-                                        @if($item->quantidade == $item->variations[0]->quantidade)
-                                            <span class="cart-product-img-tip">Último Disponível</span>
+                                                @if($item->quantidade == $item->variations[0]->quantidade)
+                                                    <span class="cart-product-img-tip">Último Disponível</span>
                                                 @endif
                                         @endif
                                             </span>
@@ -134,10 +135,12 @@
                     <div class="total-container text-center">
                         <span class="total-value d-block">R$ {{number_format($cashback,2,",",".")}}</span>
                     </div>
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" id="flexSwitchCheckDefault">
-                        <label class="form-check-label" for="flexSwitchCheckDefault">Usar Cashback</label>
-                    </div>
+                    @if($this->cashback > 0 )
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="flexSwitchCheckDefault" wire:click="toggleCashback" {{ $hasCashback ? 'checked' : '' }}>
+                            <label class="form-check-label" for="flexSwitchCheckDefault">Usar Cashback</label>
+                        </div>
+                    @endif
                 </div>
 
             </div>
@@ -174,3 +177,14 @@
         </div>
     </div>
 </div>
+<script>
+    document.addEventListener('livewire:load', function () {
+        // Inicialize o Chosen quando Livewire terminar de carregar
+        $('.chosen-select').chosen();
+    });
+
+    // document.addEventListener('livewire:updated', function () {
+    //     // Re-inicialize o Chosen após qualquer atualização Livewire
+    //     $('.chosen-select').chosen();
+    // });
+</script>

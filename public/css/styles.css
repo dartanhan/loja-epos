@@ -100,7 +100,7 @@
 
     .cart-product-img {
         width: 120px;
-        height: 120px;
+        height: 100px;
         background-size: cover;
         background-position: center;
         position: relative;
@@ -298,7 +298,9 @@
         padding: 0;
         margin-top: 0px;
     }
-    .text-red{
+    .text-red {
         color: #ff0000;
+    }
+    .cursor{
         cursor: pointer;
     }

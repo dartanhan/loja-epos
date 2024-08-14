@@ -24,6 +24,7 @@ class Sale extends Component
     public $frete=0;
     public $formaId;
     public $css;
+    public $hasCashback = false;
 
     protected $listeners = ['vendaUpdated' => 'handleVendaUpdated','loadSales' => 'mount',
         'tipoVenda'=>'tipoVenda','storeSale'=>'storeSale','updatedValorRecebido' => 'updatedValorRecebido'];
@@ -108,6 +109,21 @@ class Sale extends Component
             $this->css = '';
         }
 
+    }
+
+    /**
+     * Ativa o uso do cashback ou desativa
+     */
+    public function toggleCashback()
+    {
+        $this->hasCashback = !$this->hasCashback;
+
+        // Adicione a lógica para aplicar o cashback
+        $this->total(); 
+        
+        // Atualize a venda ou faça qualquer outra ação necessária
+        $this->emitTo('total-sale','totalSaleVendaUpdated','',$this->hasCashback);
+        
     }
 
     /**
