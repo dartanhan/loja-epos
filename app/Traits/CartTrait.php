@@ -359,7 +359,8 @@ trait CartTrait {
      * Retorna o total da venda
      */
     public function total(){
-        $this->total =  $this->subTotal -$this->discount - $this->cashback;
+        //$this->total =  $this->subTotal -$this->discount - $this->cashback;
+        $this->total =  $this->subTotal -$this->discount;
     }
 
     /***
@@ -635,12 +636,12 @@ trait CartTrait {
                 . "VALOR A PAGAR                                    " . $formatter->formatCurrency($this->total, 'BRL'). "\n\r"
                 . "----------------------------------------------------------------\n\r"
                 . "FORMA DE PAGAMENTO                             $formaPagamento->nome \n\r";
-                
+
                 if($this->dinheiro > 0){
                     $cupom .= "VALOR RECEBIDO                            " . $formatter->formatCurrency($this->dinheiro, 'BRL'). "\n\r";
                     $cupom .= "TROCO                                     " . $formatter->formatCurrency($this->troco, 'BRL') . "\n\r";
                 }
-                
+
                 $cupom .= "----------------------------------------------------------------\n\r"
                 . $vendedor.auth()->user()->nome ."      |        Codigo Venda: ".$data['codigo_venda'] . "\n\r"
                 . "----------------------------------------------------------------\n\r"

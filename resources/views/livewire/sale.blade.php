@@ -61,10 +61,28 @@
                             @foreach($cartItems as $item)
                                 <tr>
                                     <td class="p-1" style="width: 120px;">
-                                        <img src="{{$this->getImageUrl($item)}}"
-                                             alt="{{$item->name}}"
-                                             title="{{$item->name}}" data-toggle="tooltip" data-placement="top"
-                                             class="product-img rounded " wire:ignore/>
+{{--                                        <img src="{{$this->getImageUrl($item)}}"--}}
+{{--                                             alt="{{$item->name}}"--}}
+{{--                                             title="{{$item->name}}" data-toggle="tooltip" data-placement="top"--}}
+{{--                                             class="product-img rounded " wire:ignore/>--}}
+
+                                        @if(!empty($item->imagem))
+                                            <span class="cart-product-img"
+                                                  style="background-image: url('{{ $this->getImageUrl($item)  }}'); opacity: 1;"
+                                                  data-toggle="tooltip" data-placement="top" title="{{ $item->name }}">
+                                                @if($item->quantidade == $item->variations[0]->quantidade)
+                                                    <span class="cart-product-img-tip">Último Disponível</span>
+                                                @endif
+                                             </span>
+                                        @else
+                                            <span class="cart-product-img"
+                                                  style="background-image: url('{{ $this->getImageUrl($item) }}'); opacity: 1;"
+                                                  data-toggle="tooltip" data-placement="top" title="{{ $item->name }}">
+                                        @if($item->quantidade == $item->variations[0]->quantidade)
+                                            <span class="cart-product-img-tip">Último Disponível</span>
+                                                @endif
+                                        @endif
+                                            </span>
                                     </td>
                                     <td>
                                         <span class="product-name">{{$item->codigo_produto}} - {{$item->name}}</span>
@@ -92,7 +110,7 @@
                     Frete
                 </div>
                 <div class="card-body">
-                    <div class="total-container text-center">
+                    <div class="total-container text-center p-2">
                         <span class="total-value d-block">R$ {{number_format($frete ,2,",",".")}}</span>
                     </div>
                 </div>
@@ -103,7 +121,7 @@
                     Troco
                 </div>
                 <div class="card-body">
-                    <div class="total-container text-center">
+                    <div class="total-container text-center p-2">
                         <span class="total-value d-block {{$css}}">R$ {{number_format($troco,2,",",".")}}</span>
                     </div>
                 </div>
@@ -111,23 +129,24 @@
             <div class="card mb-2 p-0 ml-0">
                 <div class="card-header bg-primary text-white text-center">
                     Cashback
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" id="flexSwitchCheckDefault">
-                        <label class="form-check-label" for="flexSwitchCheckDefault">Utilizar o Cashback</label>
-                    </div>
                 </div>
                 <div class="card-body">
                     <div class="total-container text-center">
                         <span class="total-value d-block">R$ {{number_format($cashback,2,",",".")}}</span>
                     </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="flexSwitchCheckDefault">
+                        <label class="form-check-label" for="flexSwitchCheckDefault">Usar Cashback</label>
+                    </div>
                 </div>
+
             </div>
             <div class="card mb-2 p-0 ml-0">
                 <div class="card-header bg-primary text-white text-center">
                     Descontos
                 </div>
                 <div class="card-body">
-                    <div class="total-container text-center">
+                    <div class="total-container text-center p-2">
                         <span class="total-value d-block">R$ {{number_format($discount,2,",",".")}}</span>
                     </div>
                 </div>
@@ -143,7 +162,7 @@
                 </span>
             </div>
             <div class="card mb-2 p-0 ml-0">
-                <div class="card-header bg-success text-white text-center p-2">
+                <div class="card-header bg-success text-white text-center p-1">
                     <span class="total-text">TOTAL GERAL</span>
                 </div>
                 <div class="card-body p-0">
