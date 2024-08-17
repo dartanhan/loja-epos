@@ -26,6 +26,8 @@ class TotalSale extends Component
 
     /***
      *  //taxa do cliente caso a entrega seja motoby loja soma no total
+     * @param $formaEntrega
+     * @param $hasCashback
      */
     public function handleTotalSaleVendaUpdated($formaEntrega,$hasCashback){
         $this->loadCartItemsTrait();

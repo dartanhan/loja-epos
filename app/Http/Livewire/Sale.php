@@ -56,11 +56,11 @@ class Sale extends Component
      * Chama a função no javascript
      * @param $value
      */
-    public function updatedSelectedItemFormaPgto($value)
-    {
-        $this->emit('formaPgtoChanged', $value);
-
-    }
+//    public function updatedSelectedItemFormaPgto($value)
+//    {
+//        $this->emit('formaPgtoChanged', $value);
+//
+//    }
 
     /**
      * Altera o valor total caso tenha selecionado na entrega o motoboy da loja, pega taxa fixa de entrega
@@ -102,10 +102,10 @@ class Sale extends Component
 
         $this->troco = $this->dinheiro > 0 ? $this->dinheiro - $this->total : 0;
         if($this->troco < 0){
-            $this->emit('btn-finalizar-venda',false, $this->dinheiro);
+            $this->emit('btn-finalizar-venda',false,  $this->troco);
             $this->css = 'text-red';
         }else{
-            $this->emit('btn-finalizar-venda',true, $this->dinheiro);
+            $this->emit('btn-finalizar-venda',true,  $this->troco);
             $this->css = '';
         }
 
@@ -119,11 +119,11 @@ class Sale extends Component
         $this->hasCashback = !$this->hasCashback;
 
         // Adicione a lógica para aplicar o cashback
-        $this->total(); 
-        
+        $this->total();
+
         // Atualize a venda ou faça qualquer outra ação necessária
         $this->emitTo('total-sale','totalSaleVendaUpdated','',$this->hasCashback);
-        
+
     }
 
     /**

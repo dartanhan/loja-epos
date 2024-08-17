@@ -2,45 +2,58 @@
     <style>
         /* Estilos customizados podem ser adicionados aqui */
         .item-list {
-        max-height: 300px; /* Altura máxima para o div com scroll */
+        max-height: 250px; /* Altura máxima para o div com scroll */
         overflow-y: auto; /* Adiciona scroll vertical se necessário */
+        }
+        #container > div {
+            flex: 1; /* Distribui o espaço igualmente */
         }
     </style>
 
     <div class="container p-0">
-        <div class="row">
+        <div class="row" style="display: flex; gap: 10px; /* Espaço entre as divs */">
             <!--Tipo de Venda -->
             <div class="col-md-4 p-0" style="width: 180px">
-                <div class="card mb-2 p-0 ml-0">
+                <div class="card mb-3 p-0 ml-0">
                     @livewire('tipo-venda')
                 </div>
             </div>
 
             <!-- Forma de pagamento -->
-            <div class="p-0 ml-0" style="flex: 0 0 auto;width: 28%;">
-                <div class="card mb-2 p-0 ml-0">
+            <div class="p-0 ml-0" style="flex: 0 0 auto;width: 32%;" wire:ignore>
+                <div class="card p-0 ml-0">
                     <div class="card-header text-monospace text-center bg-primary text-white">
                         Forma de Pagamento
                     </div>
-                    <div class="card-body text-monospace p-2">
-                        <select  class="form-select mb-2 p-1 chosen-select" id="formaPgto" multiple>
-                            <option value="">Selecione?</option>
+                    <div class="card-body text-monospace p-2 mb-1 ml-0">
+                        <select  class="form-select chosen-select" id="formaPgto" multiple data-placeholder="Selecione forma de Pagamento">
                             @foreach($paymentMethods as $payment)
-                                <option value="{{ $payment->id }}" data-slug="{{$payment->slug}}">{{ $payment->nome }}</option>
+                                <option value="{{ $payment->id }}" data-slug="{{$payment->slug}}" data-text="{{ $payment->nome }}">{{ $payment->nome }}</option>
                             @endforeach
                         </select>
                     </div>
                 </div>
             </div>
-            
-            <!-- Input de dinheiro-->
-            <div class="col-md-2 p-0 ml-0" style="width: 180px;">
-                @livewire('card-dinheiro')
+            <!-- Input de venda dupla-->
+            <div class="col-md-5 p-0 ml-0" wire:ignore>
+                <div class="card mb-2 mb-2 p-0 ml-0" style="display: none" id="card_venda_dupla" wire:ignore>
+                    <div class="card-header bg-primary text-white text-center" >
+                        Venda em Pagamento Duplo
+                    </div>
+                    <div class="card-body text-monospace">
+                        <div id="paymentInputsContainer"></div>
+                    </div>
+                </div>
             </div>
             <!-- Forma de entrega -->
             <div class="col-md-3 p-0 ml-0" >
                 @livewire('forma-entrega')
             </div>
+            <!-- Input de dinheiro-->
+            <div class="col-md-2 p-0 ml-0" style="width: 180px;">
+                @livewire('card-dinheiro')
+            </div>
+
         </div>
         <!-- Lista de produtos com imagens -->
         <div class="row">
@@ -68,7 +81,7 @@
 {{--                                             class="product-img rounded " wire:ignore/>--}}
 
                                         @if(!empty($item->imagem))
-                                            <span class="cart-product-img"
+                                            <span class="cart-product-img cart-product-img-view"
                                                   style="background-image: url('{{ $this->getImageUrl($item)  }}'); opacity: 1;"
                                                   data-toggle="tooltip" data-placement="top" title="{{ $item->name }}">
                                                 @if($item->quantidade == $item->variations[0]->quantidade)
@@ -76,7 +89,7 @@
                                                 @endif
                                              </span>
                                         @else
-                                            <span class="cart-product-img"
+                                            <span class="cart-product-img cart-product-img-view "
                                                   style="background-image: url('{{ $this->getImageUrl($item) }}'); opacity: 1;"
                                                   data-toggle="tooltip" data-placement="top" title="{{ $item->name }}">
                                                 @if($item->quantidade == $item->variations[0]->quantidade)
@@ -177,14 +190,3 @@
         </div>
     </div>
 </div>
-<script>
-    document.addEventListener('livewire:load', function () {
-        // Inicialize o Chosen quando Livewire terminar de carregar
-        $('.chosen-select').chosen();
-    });
-
-    // document.addEventListener('livewire:updated', function () {
-    //     // Re-inicialize o Chosen após qualquer atualização Livewire
-    //     $('.chosen-select').chosen();
-    // });
-</script>

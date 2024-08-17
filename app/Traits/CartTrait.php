@@ -42,7 +42,7 @@ trait CartTrait {
             ->where('produto_variation_id', $productVariationId)
             ->where('status' , 'ABERTO')->first();
 
-        //busa o produto para inserir no carrinho pelo seu codigo
+        //busca o produto para inserir no carrinho pelo seu codigo
         $produto = ProdutoVariacao::with('images','produtos')
             ->where("subcodigo",$barcode)
             ->where("status",true)
@@ -80,15 +80,18 @@ trait CartTrait {
             ];
             //dd($carts);
 
-            Carts::create($carts);
+           Carts::create($carts);
         }
         $this->loadCartItemsTrait();
         $this->emit("message", "Item adicionado com sucesso!", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN);
         $this->emitTo('incluir-cart','cartUpdated');
-        $this->emitTo('total-sale','totalSaleVendaUpdated','');
+        $this->emitTo('total-sale','totalSaleVendaUpdated','', $this->hasCashback);
         $this->emitTo('incluir-totais','totaisUpdated');
-        //$this->emit('refresh', true);
         $this->barcode = "";
+
+        //bacalhau apra dar refresh na tela , pois a forma de pagamento quando fehca a venda não exibe o card quando venda dupla
+        if($this->totalItens <= 1)
+        $this->emit('refresh', true);
 
     }
 
@@ -203,7 +206,7 @@ trait CartTrait {
                 if($product->update()){
                     $this->emit("message", "Quantidade adicionada com sucesso!", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN);
                     $this->emitTo('incluir-cart','cartUpdated');
-                    $this->emitTo('total-sale','totalSaleVendaUpdated','');
+                    $this->emitTo('total-sale','totalSaleVendaUpdated','', $this->hasCashback);
                     $this->emitTo('incluir-totais','totaisUpdated');
                    // $this->emitTo('cart-component','atualizarCarrinho');
                 }else{
@@ -235,7 +238,7 @@ trait CartTrait {
             if($product->update()){
                 $this->emit("message", "Quantidade removida com sucesso!", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN);
                 $this->emitTo('incluir-cart','cartUpdated');
-                $this->emitTo('total-sale','totalSaleVendaUpdated','');
+                $this->emitTo('total-sale','totalSaleVendaUpdated','', $this->hasCashback);
                 //$this->emitTo('cart-component','atualizarCarrinho');
                 $this->emitTo('incluir-totais','totaisUpdated');
             }else{
@@ -313,7 +316,7 @@ trait CartTrait {
         $this->loadCartItemsTrait();
         $this->emit("message", "Item removido com sucesso!", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN);
         $this->emitTo('incluir-cart','cartUpdated');
-        $this->emitTo('total-sale','totalSaleVendaUpdated','');
+        $this->emitTo('total-sale','totalSaleVendaUpdated','', $this->hasCashback);
         //$this->emitTo('cart-component','atualizarCarrinho');
         $this->emitTo('incluir-totais','totaisUpdated');
 
@@ -364,7 +367,7 @@ trait CartTrait {
         //Caso o cashback seja true dimiminui da venda o valor
         if($this->hasCashback){
             $this->total =  $this->subTotal - $this->discount - $this->cashback;
-        }        
+        }
     }
 
     /***
@@ -408,10 +411,11 @@ trait CartTrait {
      */
     public function storeSaleTrait($data)
     {
-        DB::beginTransaction();
-        $this->printSale($data);
 
-        $status = 'PAGO'; // valor que você deseja definir para o campo status
+        DB::beginTransaction();
+      //  $this->printSale($data);
+
+        $status = 'PAGO';
         $clienteId = null;
         $productsData = [];
         $productVariations =[];
@@ -481,18 +485,19 @@ trait CartTrait {
                 }
 
                 // Recupera todas as taxas necessárias de uma vez
-                $taxes = TaxaCartao::whereIn('forma_id', [$data['forma_pgto']])->pluck('valor_taxa', 'forma_id')->toArray();
+                //$taxes = TaxaCartao::whereIn('forma_id', [$data['forma_pgto']['id']])->pluck('valor_taxa', 'forma_id')->toArray();
 
                 // Prepara os dados para gravar  forma de pagamento
                 $paymentTypesData = [];
-                //for ($i = 0; $i < $totalPayment; $i++) {
+                for ($i = 0; $i < count($data['forma_pgto']); $i++) {
                     $paymentTypesData[] = [
                         'venda_id' => $sale->id,
-                        'forma_pagamento_id' => $data['forma_pgto'],
-                        'valor_pgto' => $this->total,
-                        'taxa' => $taxes[$data['forma_pgto']] ?? 0
+                        'forma_pagamento_id' => $data['forma_pgto'][$i]['id'],
+                        'valor_pgto' => $data['forma_pgto'][$i]['valor'],
+                        'taxa' => (float)TaxaCartao::where('forma_id',$data['forma_pgto'][$i]['id'])->first()->valor_taxa
                     ];
-                //}
+                }
+
                 VendasProdutosTipoPagamento::insert($paymentTypesData);
 
                  // Prepara os dados para inserção dos descontos
@@ -516,7 +521,10 @@ trait CartTrait {
 
 
                 //Salva o cashback
-                if(!empty($this->cartItems[0]['clientes'])){
+                //if (isset($this->cartItems[0]['clientes']) && is_array($this->cartItems[0]['clientes']) && !empty($this->cartItems[0]['clientes'])) {
+                //Verificando Se a Chave Existe no Array
+                if (array_key_exists(0, $this->cartItems) && array_key_exists('clientes', $this->cartItems[0])) {
+                    dd($this->cartItems[0]['clientes']);
                     $cashbacks = Cashback::all();
                     $taxa = 0.05;
                     foreach ($cashbacks as $valor) {
@@ -551,49 +559,20 @@ trait CartTrait {
                 }
 
             }
+
             // Confirmar a transação
             DB::commit();
-
+            $this->emit("message", "Venda realizada com sucesso. ", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN,true);
+            // $this->printSale($data);
         } catch (\Exception $e) {
             // Reverter a transação em caso de erro
             DB::rollBack();
             $this->emit("message", " Falha ao fechar venda. ". $e->getMessage(), IconConstants::ICON_ERROR,IconConstants::COLOR_RED);
-        } finally {
-            $this->printSale($data);
-            $this->emit("message", "Venda realizada com sucesso. ", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN,true);
-        }
-    }
-
-
-    private function printer($texto){
-        try {
-            $connector = new NetworkPrintConnector("192.168.0.200", 9100);
-
-            /* Print a "Hello world" receipt" */
-            $printer = new Printer($connector);
-
-            $printer -> initialize();
-            $printer -> setFont(1);
-            $printer -> setLineSpacing(4);
-            $printer -> setJustification(0);
-            $printer -> selectCharacterTable(3);
-
-            $printer -> text($texto);
-            $printer ->feed(2);
-            $printer -> cut();
-
-            /* Close printer */
-            $printer -> close();
-
-        } catch (\Exception $e) {
-           // echo "Couldn't print to this printer: " . $e -> getMessage() . "\n";
-            $this->emit("message", "Error. " .  $e -> getMessage() , IconConstants::ICON_ERROR,IconConstants::COLOR_RED);
-
         }
     }
 
     /**
-     * Imprimir a venda
+     * Formata a saida do cupom para imprimir a venda
      * @param $data
      */
     public function printSale($data){
@@ -668,6 +647,40 @@ trait CartTrait {
 
     }
 
+    /**
+     * Imprime a venda
+     * @param $body
+     */
+    private function printer($body){
+        try {
+            $connector = new NetworkPrintConnector("192.168.0.200", 9100);
+
+            /* Print a "Hello world" receipt" */
+            $printer = new Printer($connector);
+
+            $printer -> initialize();
+            $printer -> setFont(1);
+            $printer -> setLineSpacing(4);
+            $printer -> setJustification(0);
+            $printer -> selectCharacterTable(3);
+
+            $printer -> text($body);
+            $printer ->feed(2);
+            $printer -> cut();
+
+            /* Close printer */
+            $printer -> close();
+
+        } catch (\Exception $e) {
+            // echo "Couldn't print to this printer: " . $e -> getMessage() . "\n";
+            $this->emit("message", "Error. " .  $e -> getMessage() , IconConstants::ICON_ERROR,IconConstants::COLOR_RED);
+
+        }
+    }
+
+    /***
+     * Função para akustar os espaços nos itens da venda para impressão
+    */
     private function formataEspacos($string, int $total,  $lado) {
 		$totalLen = strlen($string);
 
@@ -704,11 +717,19 @@ trait CartTrait {
 
     public function getImageUrl($item)
     {
-        $url = 'http://127.0.0.1/'.env('URL_IMAGE').'/public/storage/produtos';
+        //$url = 'http://127.0.0.1/'.env('URL_IMAGE');
+        // Obter o protocolo (HTTP ou HTTPS)
+        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+
+        // Obter o nome do host (domínio)
+        $host = $_SERVER['HTTP_HOST'];
+
+        $url = $protocol.'/'. $host.'/'. config('app.url_image');
+
         if($item->imagem){
-            return $url.'/'.$item->imagem;
+            return $url.'/public/storage/'.$item->imagem;
         }else{
-            return $url.'/not-image.png';
+            return $url.'/public/storage/produtos/not-image.png';
         }
     }
 

@@ -10,6 +10,7 @@ class FormaEntrega extends Component
     public $items;
     public $showEntrega = false;
     public $selectedItemForma;
+    public $hasCashback =false;  // Estado inicial do switch
 
 
     protected $listeners = ['tipoVendaUpdated' => 'handleTipoVendaUpdated','formaEntregaResetSelect'=>'resetSelect'];
@@ -37,7 +38,7 @@ class FormaEntrega extends Component
         /***
          * Emite o evento para alterar o total
          */
-        $this->emitTo('total-sale','totalSaleVendaUpdated',$slug);
+        $this->emitTo('total-sale','totalSaleVendaUpdated',$slug,$this->hasCashback);
     }
 
     public function resetSelect(){

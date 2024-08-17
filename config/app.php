@@ -56,6 +56,8 @@ return [
 
     'asset_url' => env('ASSET_URL', null),
 
+    'url_image' => env('URL_IMAGE', 'api-loja'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone

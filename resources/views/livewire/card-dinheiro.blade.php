@@ -4,7 +4,7 @@
             Valor Dinheiro
         </div>
         <div class="card-body text-monospace">
-            <input type="text" name="dinheiro" id="dinheiro" class="form-control" wire:ignore
+            <input type="text" name="dinheiro" id="dinheiro" class="form-control" data-id="{{$formaPagamentoId}}" wire:ignore
                    placeholder="Valor Dinheiro" aria-label="Valor Dinheiro" aria-describedby="Valor Dinheiro"
                    data-prefix="R$ " data-thousands="." data-decimal=","/>
         </div>

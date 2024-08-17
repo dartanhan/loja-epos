@@ -17,7 +17,6 @@
 
                         <tr id="{{$item->id}}" >
                             <td class="text-center" style="cursor: pointer">
-
                                 <button wire:click="removeFromCart({{ $item->id }})"
                                         data-toggle="tooltip" data-placement="top" title="Remover Produto" class="border-0" wire:ignore>
                                     <i class="fas fa-trash-alt text-danger"></i>
@@ -27,7 +26,7 @@
                                 @if(!empty($item->imagem))
                                     <span class="cart-product-img"
                                           style="background-image: url('{{ $this->getImageUrl($item)  }}'); opacity: 1;"
-                                          data-toggle="tooltip" data-placement="top" title="{{ $item->name }}">
+                                          data-toggle="tooltip" data-placement="top" title="{{ $item->name }}" wire:ignore>
                                                 @if($item->quantidade == $item->variations[0]->quantidade)
                                             <span class="cart-product-img-tip">Último Disponível</span>
                                         @endif
@@ -35,7 +34,7 @@
                                 @else
                                     <span class="cart-product-img"
                                           style="background-image: url('{{ $this->getImageUrl($item) }}'); opacity: 1;"
-                                          data-toggle="tooltip" data-placement="top" title="{{ $item->name }}">
+                                          data-toggle="tooltip" data-placement="top" title="{{ $item->name }}" wire:ignore>
                                         @if($item->quantidade == $item->variations[0]->quantidade)
                                             <span class="cart-product-img-tip">Último Disponível</span>
                                         @endif
@@ -75,7 +74,7 @@
                             </td>
                             <td class="text-center">
                                 @if($item->quantidade > 1)
-                                    <span title="Remover Item" data-toggle="tooltip">
+                                    <span>
                                         <a href="#" class="text-decoration-none"
                                            wire:click.prevent="decrementQuantity({{ $item->produto_variation_id }})">
                                             <i class="fa fa-minus-circle" aria-hidden="true"></i>
@@ -84,7 +83,7 @@
                                 @endif
                                 <span class="col-d-1">{{ $item->quantidade }}</span>
                                 @if($item->quantidade < $item->variations[0]->quantidade)
-                                    <span title="Adicionar Item" data-toggle="tooltip">
+                                    <span>
                                         <a href="#" class="text-decoration-none"
                                            wire:click.prevent="incrementQuantity({{ $item->produto_variation_id }})">
                                             <i class="fa fa-plus-circle " aria-hidden="true"></i>
