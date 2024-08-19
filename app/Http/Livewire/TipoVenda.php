@@ -29,10 +29,10 @@ class TipoVenda extends Component
 
 
         if ($alias == 'online') {
-            $this->emit('tipoVendaUpdated', 'online');
+            $this->emit('showFormaEntrega', 'online');
         } else {
-            $this->emit('tipoVendaUpdated', 'presencial');
-            $this->emitTo('forma-entrega','formaEntregaResetSelect');
+            $this->emit('showFormaEntrega', 'presencial');
+           //$this->emitTo('forma-entrega','formaEntregaResetSelect');
             $this->emitTo('sale','vendaUpdated','');
         }
         $this->emitTo('sale','tipoVenda', $tipoVendaId);

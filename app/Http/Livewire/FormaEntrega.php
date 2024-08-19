@@ -8,21 +8,22 @@ use App\Http\Models\FormaEntrega as Forma;
 class FormaEntrega extends Component
 {
     public $items;
-    public $showEntrega = false;
+   // public $showEntrega = false;
     public $selectedItemForma;
     public $hasCashback =false;  // Estado inicial do switch
 
 
-    protected $listeners = ['tipoVendaUpdated' => 'handleTipoVendaUpdated','formaEntregaResetSelect'=>'resetSelect'];
+    //protected $listeners = ['tipoVendaUpdated' => 'handleTipoVendaUpdated','formaEntregaResetSelect'=>'resetSelect'];
+    //protected $listeners = ['formaEntregaResetSelect'=>'resetSelect'];
 
     public function mount(){
         $this->items = Forma::where("status", true)->orderby("descricao","asc")->get();
     }
 
-    public function handleTipoVendaUpdated($tipoVenda)
-    {
-        $this->showEntrega = ($tipoVenda == 'online');
-    }
+    // public function handleTipoVendaUpdated($tipoVenda)
+    // {
+    //     $this->showEntrega = ($tipoVenda == 'online');
+    // }
 
     public function updatedSelectedItemForma($value)
     {
@@ -41,9 +42,9 @@ class FormaEntrega extends Component
         $this->emitTo('total-sale','totalSaleVendaUpdated',$slug,$this->hasCashback);
     }
 
-    public function resetSelect(){
-        $this->selectedItemForma = null;
-    }
+    // public function resetSelect(){
+    //     $this->selectedItemForma = null;
+    // }
 
     public function render()
     {

@@ -10,51 +10,54 @@
         }
     </style>
 
-    <div class="container p-0">
-        <div class="row" style="display: flex; gap: 10px; /* Espaço entre as divs */">
-            <!--Tipo de Venda -->
-            <div class="col-md-4 p-0" style="width: 180px">
-                <div class="card mb-3 p-0 ml-0">
-                    @livewire('tipo-venda')
-                </div>
+<div class="container p-0">
+    <div class="row d-flex flex-wrap align-items-start gap-2">
+        <!-- Tipo de Venda -->
+        <div class="p-0" style="flex: 0 0 auto; width: 180px;">
+            <div class="card mb-3 p-0">
+                @livewire('tipo-venda')
             </div>
-
-            <!-- Forma de pagamento -->
-            <div class="p-0 ml-0" style="flex: 0 0 auto;width: 32%;" wire:ignore>
-                <div class="card p-0 ml-0">
-                    <div class="card-header text-monospace text-center bg-primary text-white">
-                        Forma de Pagamento
-                    </div>
-                    <div class="card-body text-monospace p-2 mb-1 ml-0">
-                        <select  class="form-select chosen-select" id="formaPgto" multiple data-placeholder="Selecione forma de Pagamento">
-                            @foreach($paymentMethods as $payment)
-                                <option value="{{ $payment->id }}" data-slug="{{$payment->slug}}" data-text="{{ $payment->nome }}">{{ $payment->nome }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <!-- Input de venda dupla-->
-            <div class="col-md-5 p-0 ml-0" wire:ignore>
-                <div class="card mb-2 mb-2 p-0 ml-0" style="display: none" id="card_venda_dupla" wire:ignore>
-                    <div class="card-header bg-primary text-white text-center" >
-                        Venda em Pagamento Duplo
-                    </div>
-                    <div class="card-body text-monospace">
-                        <div id="paymentInputsContainer"></div>
-                    </div>
-                </div>
-            </div>
-            <!-- Forma de entrega -->
-            <div class="col-md-3 p-0 ml-0" >
-                @livewire('forma-entrega')
-            </div>
-            <!-- Input de dinheiro-->
-            <div class="col-md-2 p-0 ml-0" style="width: 180px;">
-                @livewire('card-dinheiro')
-            </div>
-
         </div>
+
+        <!-- Forma de Pagamento -->
+        <div class="p-0" style="flex: 0 0 auto; width: 32%;" wire:ignore>
+            <div class="card p-0">
+                <div class="card-header text-monospace text-center bg-primary text-white">
+                    Forma de Pagamento
+                </div>
+                <div class="card-body text-monospace p-2 mb-1">
+                    <select class="form-select chosen-select" id="formaPgto" multiple data-placeholder="Selecione forma de Pagamento">
+                        @foreach($paymentMethods as $payment)
+                            <option value="{{ $payment->id }}" data-slug="{{$payment->slug}}" data-text="{{ $payment->nome }}">{{ $payment->nome }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input de Venda Dupla -->
+        <div class="col-md-5 p-0" style="flex: 0 0 auto; display: none;" id="card_venda_dupla" wire:ignore>
+            <div class="card mb-2 p-0">
+                <div class="card-header bg-primary text-white text-center">
+                    Venda em Pagamento Duplo
+                </div>
+                <div class="card-body text-monospace">
+                    <div id="paymentInputsContainer"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Forma de Entrega -->
+        <div class="col-md-3 p-0" style="flex: 0 0 auto;display: none;" id="forma-entrega" wire:ignore>
+            @livewire('forma-entrega')
+        </div>
+
+        <!-- Input de Dinheiro -->
+        <div class="col-md-3 p-0" style="flex: 0 0 auto;">
+            @livewire('card-dinheiro')
+        </div>
+    </div>
+
         <!-- Lista de produtos com imagens -->
         <div class="row">
             <div class="card p-0 ml-0">

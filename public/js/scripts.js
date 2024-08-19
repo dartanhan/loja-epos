@@ -254,6 +254,38 @@ document.addEventListener('DOMContentLoaded', function() {
         refresh(msg);
     });
 
+    /***
+     * Exibe ou não o DIV de Forma de Entrega
+     */
+    window.livewire.on('showFormaEntrega', value => {
+        console.log('showFormaEntrega',value);
+        if(value === 'online'){
+            document.getElementById('forma-entrega').style.display = 'block';
+            $('.chosen-forma-entrega').chosen();
+            // setTimeout(() => {
+            //     $('.chosen-forma-entrega').chosen({
+            //         placeholder_text_single: 'Selecione?'
+            //     });
+            // }, 400);
+        }else{
+            document.getElementById('forma-entrega').style.display = 'none';
+            resetSelect('formaEntrega');
+        }
+    });
+
+    /**
+     * Reseta o indice do select para o padrão
+     */
+    function resetSelect(name) {
+        //document.getElementById(name).selectedIndex = ''; // Ou use .value = '' para deselecionar tudo
+
+        // Reseta o valor do select
+        $(`#`+name).val('');
+
+        // Atualiza o Chosen para refletir a mudança
+        $('#'+name).trigger('chosen:updated');
+    }
+
     function refresh(msg){
         if(msg) {
             setTimeout(() => {
@@ -298,6 +330,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('chosen-tipo-venda');
         window.livewire.emitTo('tipo-venda', 'tipoUpdated',$(this).val());
     });
+    
 });
 
 /**
@@ -551,12 +584,11 @@ document.addEventListener('livewire:load', function() {
         setTimeout(() => {
             //allPaymentMethods = getAllPaymentMethods();
             $('.chosen-tipo-venda').chosen();
-            $('.chosen-forma-entrega').chosen();
             $('.chosen-select').chosen(
                 {
-                        max_selected_options: 2,
-                        width: "100%"
-                        });
+                    max_selected_options: 2,
+                    width: "100%"
+                });
         }, 1000);
     });
 
