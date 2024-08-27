@@ -14,13 +14,15 @@ class IncluirCliente extends Component
     public $discount;
     public $cashback=0;
     public $hasCashback = false;  // Estado inicial do switch
+    public $clienteId=null;
 
     protected $listeners = ['atualizarCliente' => 'mount'];
 
     public function mount()
     {
-        $this->userId = $this->userId();
+        $this->userId();
         $this->loadCartItemsTrait();
+        $this->getClientId();
     }
 
     public function render()

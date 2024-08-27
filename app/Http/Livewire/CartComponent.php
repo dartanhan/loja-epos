@@ -21,13 +21,14 @@ class CartComponent extends Component {
     public $barcode;
     public $frete = 0;
     public $codeSale;
-    public $selectedItemFormaPgto;
+    public $lojaId;
     public $totalItens = 0;
     public $discount = 0;
     public $total=0;
     public $subTotal=0;
     public $cashback=0;
     public $hasCashback = false;  // Estado inicial do switch
+    public $clienteId = 0;
 
     protected $listeners = ['atualizarCarrinho' => 'render',
                             'addToCart' => 'addToCart',
@@ -35,9 +36,10 @@ class CartComponent extends Component {
 
     public function mount()
     {
-        $this->userId = $this->userId();
-        $this->cartItems = $this->loadCartItemsTrait();
-        $this->codeSale = $this->getCodeSaleKN();
+        $this->userId();
+        $this->loadCartItemsTrait();
+        $this->getCodeSaleKN();
+        $this->lojaId();
     }
 
     public function search(Request $request)

@@ -2,7 +2,7 @@
    <!-- resources/views/livewire/cart-component.blade.php -->
     <!--div class="container"-->
     <div>
-        <input type="hidden" id="loja_id" name="loja_id" value="{{auth()->user()->loja_id}}">
+        <input type="hidden" id="loja_id" name="loja_id" value="{{$lojaId}}">
         <div class="card-container d-flex div-content">
             <!-- Card para Itens do Carrinho -->
             <div class="card d-flex flex-column" style="flex: 4;">
@@ -102,16 +102,18 @@
                                 @livewire('sale', key(time()))
                             </div>
                             <div class="card-footer text-right">
-                                <div class="tooltip-wrapper" data-toggle="tooltip" title="Gerar Link de Venda">
-                                    <button type="button" class="btn btn-success btn-sm text-monospace btn-finalizar-venda" disabled>Gerar Link</button>
+                                <div class="tooltip-wrapper" data-toggle="tooltip" title="{{$clienteId > 0 ? 'Gerar Link da Venda' : 'Associe um cliente à venda para criar o link'}} " >
+                                    <button type="button" class="btn btn-success btn-sm text-monospace
+                                        btn-finalizar-venda-link"  data-cliente_id="{{$clienteId}}" {{$clienteId > 0 ? '' : 'disabled' }}
+                                    onclick="finalizeSale(`{{$codeSale}}`,`{{\App\Enums\StatusVenda::PENDENTE}}`)">Gerar Link</button>
                                 </div>
                                 <div class="tooltip-wrapper" data-toggle="tooltip" title="Finalizar Venda" id="btn-finalizar-venda">
                                     <button type="button" class="btn btn-primary btn-sm text-monospace btn-finalizar-venda"
-                                            onClick="finalizeSale(`{{$codeSale}}`)" disabled>
+                                            onClick="finalizeSale(`{{$codeSale}}`,`{{\App\Enums\StatusVenda::PAGO}}`)" disabled>
                                         Finalizar Venda
                                     </button>
                                 </div>
-                                <div class="tooltip-wrapper" data-toggle="tooltip" title="Gerar Link de Venda">
+                                <div class="tooltip-wrapper" data-toggle="tooltip" title="Fechar Tela">
                                     <button type="button" class="btn btn-outline-danger btn-sm text-monospace" id="closeModalFooterBtn"
                                             data-bs-dismiss="modal" title="Fechar Janela" data-toggle="tooltip">
                                         Fechar (ESC)

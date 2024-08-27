@@ -2,6 +2,7 @@
 namespace App\Traits;
 
 use App\Constants\IconConstants;
+use App\Enums\StatusVenda;
 use App\Http\Models\Carts;
 use App\Http\Models\Cashback;
 use App\Http\Models\FormaPagamento;
@@ -60,7 +61,7 @@ trait CartTrait {
             $cliente_id = null;
             //verifica se tem venda aberta e se tem cliente associado de ao menos 1 item no carrinho
             $cartItemCliente = Carts::with('clientes')
-                ->where('user_id', $this->userId())
+                ->where('user_id', $this->userId)
                 ->where('status' , 'ABERTO')->first();
 
             //dd($cartItemCliente);
@@ -158,7 +159,7 @@ trait CartTrait {
         $numeroAleatorio = rand(0, 99999);
 
         // Concatena o número formatado com "KN"
-        return "KN". sprintf("%05d", $numeroAleatorio);;
+        $this->codeSale = "KN". sprintf("%05d", $numeroAleatorio);;
     }
 
     /**
@@ -356,6 +357,7 @@ trait CartTrait {
         $this->total();//$this->total = $this->subTotal()-$this->discount;
 
         $this->totalItens = count($this->cartItems);
+        $this->getClientId();
     }
 
     /***
@@ -405,170 +407,189 @@ trait CartTrait {
         }
     }
 
+    private function getClientId(){
+        $this->clienteId = null;
+        if ($this->cartItems->isNotEmpty() && optional($this->cartItems->first()->clientes)->isNotEmpty()){
+            //$cartTotal += $this->cartItems[0]->clientes[0]->taxa;
+            $this->clienteId = $this->cartItems[0]->clientes[0]->id;
+        }
+    }
     /**
      * Salva a venda em definitivo
      * @param $data
      */
     public function storeSaleTrait($data)
     {
-
+        //  $this->printSale($data);
         DB::beginTransaction();
-      //  $this->printSale($data);
 
-        $status = 'PAGO';
-        $clienteId = null;
-        $productsData = [];
-        $productVariations =[];
-        //$this->total =\floatval(\number_format($this->total,2));
-
-        try {
-            //$cartTotal = $this->getTotalCartTraitByUser()['total'];
-            if ($this->cartItems->isNotEmpty() && optional($this->cartItems->first()->clientes)->isNotEmpty()){
-                //$cartTotal += $this->cartItems[0]->clientes[0]->taxa;
-                $clienteId = $this->cartItems[0]->clientes[0]->id;
-            }
-
-            $sale = ["codigo_venda" => $data["codigo_venda"],
-                "loja_id" =>  $data["loja_id"],
-                "valor_total" => $this->subTotal,
-                "usuario_id" =>  $this->userId ,//isset($dados["usuario_id"]) ? $dados["usuario_id"] : 3,
-                "cliente_id" =>  $clienteId,
-                "tipo_venda_id" => (int)$data['tipoVenda'],
-                "forma_entrega_id" => (int)$data['forma_entrega']
-            ];
-
-            //Salva a venda
-            $sale = Vendas::create($sale);
-
-            // extrai os IDs dos itens do carrinho para atualizar a tabela Carts, com venda_id e Status PAGO
+        if($data['status'] == StatusVenda::PENDENTE){
             $ids = $this->cartItems->pluck('id')->toArray();
+           //dd($ids);
+            Carts::whereIn('id', $ids)->update(['status' => $data['status']]);
 
-            //dd($this->cartItems);
-
-            foreach ($this->cartItems as $produto) {
-
-                $percentual_desconto = $produto['variations'][0]['percentage'];
-                if($produto['quantidade'] > 5 || count($this->cartItems) >= 10  ){
-                    $percentual_desconto = 0;
-                }
-
-                $productsData[] = [
-                    'venda_id' => $sale->id,
-                    'codigo_produto' => $produto['codigo_produto'],
-                    'descricao' => $produto['name'],
-                    'valor_produto' => floatval($produto['price']),
-                    'quantidade' => $produto['quantidade'],
-                    'percentual_desconto' => $percentual_desconto,
-                    'troca' => false,
-                    'fornecedor_id' => $produto['variations'][0]['fornecedor'],
-                    'categoria_id' => $produto['variations'][0]['produtos']['categoria_id']
-                ];
-                // Adiciona os ids das variações para atualizar o estoque
-                array_push($productVariations, ['id' => $produto['variations'][0]['id'],'quantidade' => $produto['quantidade']
-                ]);
-            }
-
-            // Salva os produtos da venda em massa
-            $inserted = VendaProdutos::insert($productsData);
-            if ($inserted) {
-                // Verifica se há IDs para atualizar e atualiza a tabela de Carts
-                if (!empty($ids)) {
-                    Carts::whereIn('id', $ids)->update(['venda_id' => $sale->id, 'status' => $status]);
-                }
-
-                // Atualiza as quantidades em estoque
-                foreach ($productVariations as $variation) {
-                    $produtoVariation = ProdutoVariacao::find($variation['id']);
-                    if ($produtoVariation) {
-                        $produtoVariation->decrement('quantidade', $variation['quantidade']);
-                    }
-                }
-
-                // Recupera todas as taxas necessárias de uma vez
-                //$taxes = TaxaCartao::whereIn('forma_id', [$data['forma_pgto']['id']])->pluck('valor_taxa', 'forma_id')->toArray();
-
-                // Prepara os dados para gravar  forma de pagamento
-                $paymentTypesData = [];
-                for ($i = 0; $i < count($data['forma_pgto']); $i++) {
-                    $paymentTypesData[] = [
-                        'venda_id' => $sale->id,
-                        'forma_pagamento_id' => $data['forma_pgto'][$i]['id'],
-                        'valor_pgto' => $data['forma_pgto'][$i]['valor'],
-                        'taxa' => (float)TaxaCartao::where('forma_id',$data['forma_pgto'][$i]['id'])->first()->valor_taxa
-                    ];
-                }
-
-                VendasProdutosTipoPagamento::insert($paymentTypesData);
-
-                 // Prepara os dados para inserção dos descontos
-                 $saleDiscountData[] = [
-                    'venda_id' => $sale->id,
-                    'valor_desconto' => $this->discount,
-                    'valor_recebido' =>  $data["valor_dinheiro"] ? $data["valor_dinheiro"] : 0,
-                    'valor_percentual' => 0
-                ];
-
-                VendasProdutosDesconto::insert($saleDiscountData);
-
-                // Prepara os dados para inserção da entrega
-                $saleEntregaData[] = [
-                    'venda_id' => $sale->id,
-                    'forma_id' => $this->formaId,
-                    'valor_entrega' => $this->frete,
-                ];
-
-                VendasProdutosEntrega::insert($saleEntregaData);
-
-
-                //Salva o cashback
-                //if (isset($this->cartItems[0]['clientes']) && is_array($this->cartItems[0]['clientes']) && !empty($this->cartItems[0]['clientes'])) {
-                //Verificando Se a Chave Existe no Array
-                if (array_key_exists(0, $this->cartItems) && array_key_exists('clientes', $this->cartItems[0])) {
-                    dd($this->cartItems[0]['clientes']);
-                    $cashbacks = Cashback::all();
-                    $taxa = 0.05;
-                    foreach ($cashbacks as $valor) {
-                        if ($valor->valor < $sale->valor_total-$this->discount) {
-                            $taxa = $valor->taxa;
-                        }
-                    }
-                    //DB::rollBack();
-                    //dd([$sale->valor_total,$this->discount,$this->total]);
-                    $valor_cashback = ($sale->valor_total-$this->discount * $taxa) / 100;
-
-                    $cashbackData[] = [
-                        'cliente_id' => $this->cartItems[0]['clientes'][0]['id'],
-                        'venda_id' => $sale->id,
-                        'valor' => $valor_cashback
-                    ];
-
-                    /**
-                     * Pega os dados dos cashback ativos do cliente
-                     * */
-                    $cashback_ids = [];
-                    $cashbacks = $this->cashback();
-                    if($cashbacks !== null){
-                        foreach ($this->cashback() as $cashback) {
-                            array_push($cashback_ids,$cashback->id);
-                        }
-                        //atualiza os cashbacks antigos para usado
-                        VendasCashBack::whereIn('id',$cashback_ids)->update(['status' => true]);
-                    }
-                    //Salva novo cashback
-                    VendasCashBack::insert($cashbackData);
-                }
-
-            }
-
-            // Confirmar a transação
             DB::commit();
-            $this->emit("message", "Venda realizada com sucesso. ", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN,true);
-            // $this->printSale($data);
-        } catch (\Exception $e) {
-            // Reverter a transação em caso de erro
-            DB::rollBack();
-            $this->emit("message", " Falha ao fechar venda. ". $e->getMessage(), IconConstants::ICON_ERROR,IconConstants::COLOR_RED);
+            $this->emit("message", "Venda salva com sucesso!. ", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN,true);
+
+        }else{
+
+            $clienteId = null;
+            $productsData = [];
+            $productVariations =[];
+            //$this->total =\floatval(\number_format($this->total,2));
+
+            try {
+                //$cartTotal = $this->getTotalCartTraitByUser()['total'];
+//            if ($this->cartItems->isNotEmpty() && optional($this->cartItems->first()->clientes)->isNotEmpty()){
+//                //$cartTotal += $this->cartItems[0]->clientes[0]->taxa;
+//                $clienteId = $this->cartItems[0]->clientes[0]->id;
+//            }
+                $this->getClientId();
+
+                $sale = ["codigo_venda" => $data["codigo_venda"],
+                    "loja_id" =>  $data["loja_id"],
+                    "valor_total" => $this->subTotal,
+                    "usuario_id" =>  $this->userId ,//isset($dados["usuario_id"]) ? $dados["usuario_id"] : 3,
+                    "cliente_id" =>  $this->clienteId,
+                    "tipo_venda_id" => (int)$data['tipoVenda'],
+                    "forma_entrega_id" => (int)$data['forma_entrega']
+                ];
+
+                //Salva a venda
+                $sale = Vendas::create($sale);
+
+                // extrai os IDs dos itens do carrinho para atualizar a tabela Carts, com venda_id e Status PAGO
+                $ids = $this->cartItems->pluck('id')->toArray();
+
+                //dd($this->cartItems);
+
+                foreach ($this->cartItems as $produto) {
+
+                    $percentual_desconto = $produto['variations'][0]['percentage'];
+                    if($produto['quantidade'] > 5 || count($this->cartItems) >= 10  ){
+                        $percentual_desconto = 0;
+                    }
+
+                    $productsData[] = [
+                        'venda_id' => $sale->id,
+                        'codigo_produto' => $produto['codigo_produto'],
+                        'descricao' => $produto['name'],
+                        'valor_produto' => floatval($produto['price']),
+                        'quantidade' => $produto['quantidade'],
+                        'percentual_desconto' => $percentual_desconto,
+                        'troca' => false,
+                        'fornecedor_id' => $produto['variations'][0]['fornecedor'],
+                        'categoria_id' => $produto['variations'][0]['produtos']['categoria_id']
+                    ];
+                    // Adiciona os ids das variações para atualizar o estoque
+                    array_push($productVariations, ['id' => $produto['variations'][0]['id'],'quantidade' => $produto['quantidade']
+                    ]);
+                }
+
+                // Salva os produtos da venda em massa
+                $inserted = VendaProdutos::insert($productsData);
+                if ($inserted) {
+                    // Verifica se há IDs para atualizar e atualiza a tabela de Carts
+                    if (!empty($ids)) {
+                        Carts::whereIn('id', $ids)->update(['venda_id' => $sale->id, 'status' => StatusVenda::PAGO]);
+                    }
+
+                    // Atualiza as quantidades em estoque
+                    foreach ($productVariations as $variation) {
+                        $produtoVariation = ProdutoVariacao::find($variation['id']);
+                        if ($produtoVariation) {
+                            $produtoVariation->decrement('quantidade', $variation['quantidade']);
+                        }
+                    }
+
+                    // Recupera todas as taxas necessárias de uma vez
+                    //$taxes = TaxaCartao::whereIn('forma_id', [$data['forma_pgto']['id']])->pluck('valor_taxa', 'forma_id')->toArray();
+
+                    // Prepara os dados para gravar  forma de pagamento
+                    $paymentTypesData = [];
+                    for ($i = 0; $i < count($data['forma_pgto']); $i++) {
+                        $paymentTypesData[] = [
+                            'venda_id' => $sale->id,
+                            'forma_pagamento_id' => $data['forma_pgto'][$i]['id'],
+                            'valor_pgto' => $data['forma_pgto'][$i]['valor'],
+                            'taxa' => (float)TaxaCartao::where('forma_id',$data['forma_pgto'][$i]['id'])->first()->valor_taxa
+                        ];
+                    }
+
+                    VendasProdutosTipoPagamento::insert($paymentTypesData);
+
+                    // Prepara os dados para inserção dos descontos
+                    $saleDiscountData[] = [
+                        'venda_id' => $sale->id,
+                        'valor_desconto' => $this->discount,
+                        'valor_recebido' =>  $data["valor_dinheiro"] ? $data["valor_dinheiro"] : 0,
+                        'valor_percentual' => 0
+                    ];
+
+                    VendasProdutosDesconto::insert($saleDiscountData);
+
+                    // Prepara os dados para inserção da entrega
+                    $saleEntregaData[] = [
+                        'venda_id' => $sale->id,
+                        'forma_id' => $this->formaId,
+                        'valor_entrega' => $this->frete,
+                    ];
+
+                    VendasProdutosEntrega::insert($saleEntregaData);
+
+
+                    //Salva o cashback
+                    //if (isset($this->cartItems[0]['clientes']) && is_array($this->cartItems[0]['clientes']) && !empty($this->cartItems[0]['clientes'])) {
+                    //Verificando Se a Chave Existe no Array
+                    if (array_key_exists(0, $this->cartItems) && array_key_exists('clientes', $this->cartItems[0])) {
+                        //dd($this->cartItems[0]['clientes']);
+                        $cashbacks = Cashback::all();
+                        $taxa = 0.05;
+                        foreach ($cashbacks as $valor) {
+                            if ($valor->valor < $sale->valor_total-$this->discount) {
+                                $taxa = $valor->taxa;
+                            }
+                        }
+                        //DB::rollBack();
+                        //dd([$sale->valor_total,$this->discount,$this->total]);
+                        $valor_cashback = ($sale->valor_total-$this->discount * $taxa) / 100;
+
+                        $cashbackData[] = [
+                            'cliente_id' => $this->cartItems[0]['clientes'][0]['id'],
+                            'venda_id' => $sale->id,
+                            'valor' => $valor_cashback
+                        ];
+
+                        /**
+                         * Pega os dados dos cashback ativos do cliente
+                         * */
+                        $cashback_ids = [];
+                        $cashbacks = $this->cashback();
+                        if($cashbacks !== null){
+                            foreach ($this->cashback() as $cashback) {
+                                array_push($cashback_ids,$cashback->id);
+                            }
+                            //atualiza os cashbacks antigos para usado
+                            VendasCashBack::whereIn('id',$cashback_ids)->update(['status' => true]);
+                        }
+                        //Salva novo cashback
+                        VendasCashBack::insert($cashbackData);
+                    }
+
+                }
+
+                // Confirmar a transação
+                DB::commit();
+                $this->emit("message", "Venda realizada com sucesso. ", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN,true);
+                // $this->printSale($data);
+            } catch (\Exception $e) {
+                // Reverter a transação em caso de erro
+                DB::rollBack();
+                $this->emit("message", " Falha ao fechar venda. ". $e->getMessage(), IconConstants::ICON_ERROR,IconConstants::COLOR_RED);
+            }
         }
+
+
     }
 
     /**
@@ -715,6 +736,9 @@ trait CartTrait {
 		return $COMMAND;
 	}
 
+	/**
+     * Retorna a url da imagem
+	*/
     public function getImageUrl($item)
     {
         //$url = 'http://127.0.0.1/'.env('URL_IMAGE');
@@ -733,7 +757,17 @@ trait CartTrait {
         }
     }
 
+    /**
+     * Retorna o ID do usuário logado
+    */
     public function userId(){
-        return Auth::guard('customer')->id();
+        $this->userId = Auth::guard('customer')->id();
+    }
+
+    /**
+     * Retorna o Id da loja do usuário
+    */
+    public function lojaId(){
+        $this->lojaId = Auth::guard('customer')->user()->loja_id;
     }
 }

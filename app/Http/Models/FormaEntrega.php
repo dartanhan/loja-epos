@@ -9,5 +9,5 @@ class FormaEntrega extends Model
 {
     use HasFactory;
     public $table = 'loja_forma_entregas';
-    protected $fillable = ['descricao','status','slug'];
+    protected $fillable = ['nome','status','slug'];
 }

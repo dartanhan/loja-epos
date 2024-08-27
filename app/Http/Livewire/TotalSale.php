@@ -20,7 +20,7 @@ class TotalSale extends Component
     protected $listeners = ['totalSaleVendaUpdated' => 'handleTotalSaleVendaUpdated'];
 
     public function mount(){
-        $this->userId = $this->userId();
+        $this->userId();
         $this->loadCartItemsTrait();
     }
 

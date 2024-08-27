@@ -17,7 +17,7 @@ class FormaEntrega extends Component
     //protected $listeners = ['formaEntregaResetSelect'=>'resetSelect'];
 
     public function mount(){
-        $this->items = Forma::where("status", true)->orderby("descricao","asc")->get();
+        $this->items = Forma::where("status", true)->orderby("nome","asc")->get();
     }
 
     // public function handleTipoVendaUpdated($tipoVenda)

@@ -6,6 +6,7 @@ use App\Http\Models\Carts;
 use App\Http\Models\Cliente;
 use App\Traits\CartTrait;
 use http\Exception;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 use App\Constants\IconConstants;
@@ -16,8 +17,9 @@ class SearchClient extends Component
     use CartTrait;
     public $cpfTelefone,$nome, $cpf, $email, $telefone, $cep, $logradouro, $numero, $complemento, $bairro,$localidade, $uf, $taxa;
     public $client;
-    public $clienteId;
+    public $clienteId=null;
     public $cartItems;
+    public $userId;
 
     protected $listeners = [
         'resetInputFields'  =>  'resetInputFields'
@@ -69,6 +71,11 @@ class SearchClient extends Component
         'numero.min' => 'O campo número deve ser pelo menos 1.',
         'numero.max' => 'O campo número não pode ser maior que 5.',
     ];
+
+    public function mount()
+    {
+        $this->userId();
+    }
 
     /**
      * Busca o cliente e exibe na modal as informações
@@ -150,9 +157,9 @@ class SearchClient extends Component
      * Inclui o cliente na venda
     */
     public function associarCliente(){
-      //  dd('includeClient' . $this->clienteId , Auth::id());
+        //dd('includeClient' , $this->userId , Auth::guard('customer')->id(),  $this->clienteId);
 
-        $carts = Carts::where('user_id', $this->userId())->where("status", "ABERTO")->get();
+        $carts = Carts::where('user_id', $this->userId)->where("status", "ABERTO")->get();
 
         // Itera sobre cada carrinho encontrado e atualiza o cliente_id
         foreach ($carts as $cart) {
@@ -160,8 +167,8 @@ class SearchClient extends Component
             $cart->save();
         }
 
-        $this->emit('message', 'Cliente adicionado à venda com sucesso!!',IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN);
-        $this->emit('refresh',true);
+        $this->emit('message', 'Cliente adicionado à venda com sucesso!!',IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN,true);
+        //$this->emit('refresh',true);
         $this->resetInputFields();
 
     }

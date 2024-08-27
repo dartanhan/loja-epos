@@ -122,36 +122,36 @@
         </div>
         <!-- Total da venda -->
         <div class="row">
-            <div class="card mb-2 p-0 ml-0">
+            <div class="card mb-1 p-0 ml-0">
                 <div class="card-header bg-primary text-white text-center">
                     Frete
                 </div>
-                <div class="card-body">
+                <div class="card-body  p-0 ml-0">
                     <div class="total-container text-center p-2">
                         <span class="total-value d-block">R$ {{number_format($frete ,2,",",".")}}</span>
                     </div>
                 </div>
             </div>
 
-            <div class="card mb-2 p-0 ml-0">
+            <div class="card mb-1 p-0 ml-0">
                 <div class="card-header bg-primary text-white text-center">
                     Troco
                 </div>
-                <div class="card-body">
+                <div class="card-body  p-0 ml-0">
                     <div class="total-container text-center p-2">
                         <span class="total-value d-block {{$css}}">R$ {{number_format($troco,2,",",".")}}</span>
                     </div>
                 </div>
             </div>
-            <div class="card mb-2 p-0 ml-0">
+            <div class="card mb-1 p-0 ml-0">
                 <div class="card-header bg-primary text-white text-center">
                     Cashback
                 </div>
-                <div class="card-body">
+                <div class="card-body  p-0 ml-0">
                     <div class="total-container text-center">
                         <span class="total-value d-block">R$ {{number_format($cashback,2,",",".")}}</span>
                     </div>
-                    @if($this->cashback > 0 )
+                    @if($this->cashback >= 0 )
                         <div class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" id="flexSwitchCheckDefault" wire:click="toggleCashback" {{ $hasCashback ? 'checked' : '' }}>
                             <label class="form-check-label" for="flexSwitchCheckDefault">Usar Cashback</label>
@@ -160,11 +160,11 @@
                 </div>
 
             </div>
-            <div class="card mb-2 p-0 ml-0">
+            <div class="card mb-1 p-0 ml-0">
                 <div class="card-header bg-primary text-white text-center">
                     Descontos
                 </div>
-                <div class="card-body">
+                <div class="card-body  p-0 ml-0">
                     <div class="total-container text-center p-2">
                         <span class="total-value d-block">R$ {{number_format($discount,2,",",".")}}</span>
                     </div>

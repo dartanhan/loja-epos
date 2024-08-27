@@ -21,7 +21,7 @@ class IncluirCart extends Component
 
     public function mount()
     {
-        $this->userId = $this->userId();
+        $this->userId();
         $this->handleCartUpdated();
     }
 

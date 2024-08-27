@@ -29,12 +29,12 @@ class Sale extends Component
     protected $listeners = ['vendaUpdated' => 'handleVendaUpdated','loadSales' => 'mount',
         'tipoVenda'=>'tipoVenda','storeSale'=>'storeSale','updatedValorRecebido' => 'updatedValorRecebido'];
 
-    public function mount($code = null)
+    public function mount()
     {
-        $this->userId = $this->userId();
+        $this->userId();
         $this->loadCartItemsTrait();
         $this->loadPaymentMethods();
-        $this->codeSale = $code;
+        //$this->codeSale = $code;
     }
 
     public function loadPaymentMethods()
@@ -86,6 +86,7 @@ class Sale extends Component
     {
         $this->storeSaleTrait($data);
     }
+
 
     /**
      * Calcula o troco ao digitar no campo dinheiro

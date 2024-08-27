@@ -30,7 +30,7 @@
                                     </div>
                                     <div class="d-sm-flex justify-content-center">
                                         <div class="field-wrapper">
-                                            <button class="btn btn-primary btn-lg btn-login g-recaptcha" data-sitekey="{{ env('DATA_SITEKEY') }} " data-callback='onSubmit'>Efetuar Login</button>
+                                            <button class="btn btn-primary btn-lg btn-login g-recaptcha" data-sitekey="{{ env('DATA_SITEKEY') }}" data-callback='onSubmit'>Efetuar Login</button>
                                         </div>
                                     </div>
                                 </div>
