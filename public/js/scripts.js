@@ -78,7 +78,32 @@ $(document).ready(function() {
     // $( '#searchProduct' ).select2( {
     //     theme: 'bootstrap4'
     // } );
+   
 });
+    /***
+     * Cancela a venda
+     */
+    function cancelSale(){
+        console.log('cancelSale');
+    }
+
+    /***
+     * Modal para imprimir uma venda
+     */
+    function openModalPrintSale(){
+        console.log('openModalPrintSale');
+
+        $('#openModalPrintSale').modal({
+            // backdrop: 'static',  // Disables closing the modal by clicking outside of it
+            keyboard: false      // Disables closing the modal with the ESC key
+        }).modal('show');
+
+        //Adicona ao focus ao input, após abrir a modal
+        const searchSale = document.getElementById('searchSale');
+        setTimeout(() => {
+            searchSale.focus();
+        }, 500);
+    }
 
 /***
  * FORMATA CAMPO COM MOEDA

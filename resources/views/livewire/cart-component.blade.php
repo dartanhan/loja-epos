@@ -50,12 +50,21 @@
                     </button>
                 </span>
                 <span class="d-inline">
-                    <button type="button" class="btn btn-warning btn-sm" wire:click.prevent="printSale">
+                    <button type="button" class="btn btn-warning btn-sm" onclick="openModalPrintSale()">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-printer" viewBox="0 0 16 16">
                           <path d="M2.5 8a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1"/>
                           <path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4zm1 5a2 2 0 0 0-2 2v1H2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v-1a2 2 0 0 0-2-2zm7 2v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1"/>
                         </svg>
                         Imprimir Venda (F7)
+                    </button>
+                </span>
+                <span class="d-inline">
+                    <button type="button" class="btn btn-danger btn-sm" onclick="cancelSale()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-circle" viewBox="0 0 16 16">
+                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                            <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/>
+                        </svg>
+                        Cancelar Venda (F9)
                     </button>
                 </span>
             </div>
@@ -143,7 +152,28 @@
         </div>
     </div>
 
-
+    <!-- Modal -->
+    <div class="modal fade right" id="openModalPrintSale" tabindex="-1" aria-labelledby="openModalPrintSaleLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="slideInModalLabel">Imprimir Venda</h5>
+                    <button type="button" class="btn-close" id="closeModalBtn" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="card-container d-flex">
+                        <div class="card search-card d-flex flex-column" style="flex: 3;">
+                            <div class="card-body">
+                                <div class="search-input">
+                                    @livewire('search-sale')
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
 
 </div>
