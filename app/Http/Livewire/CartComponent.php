@@ -32,7 +32,8 @@ class CartComponent extends Component {
 
     protected $listeners = ['atualizarCarrinho' => 'render',
                             'addToCart' => 'addToCart',
-                            'removerCliente' => 'removerCliente'];
+                            'removerCliente' => 'removerCliente',
+                            'cancelSale' => 'cancelSale'];
 
     public function mount()
     {
@@ -40,6 +41,7 @@ class CartComponent extends Component {
         $this->loadCartItemsTrait();
         $this->getCodeSaleKN();
         $this->lojaId();
+        $this->getClientId();
     }
 
     public function search(Request $request)
@@ -75,10 +77,18 @@ class CartComponent extends Component {
     public function removerCliente($data){
         //dd([$data['user_id'],$data['cliente_id']]);
         $this->removeClientCartTrait($data['user_id'], $data['cliente_id']);
-        $this->emit("message", "Cliente removido da venda, com sucesso!", IconConstants::ICON_SUCCESS,IconConstants::COLOR_RED);
-        $this->emit('refresh',true);
+        $this->emit("message", "Cliente removido da venda, com sucesso!", IconConstants::ICON_SUCCESS,IconConstants::COLOR_RED,true,true);
+        //$this->emit('refresh',true);
     }
 
+    /**
+     * cancelSale
+     * @param $data
+     */
+
+    public function cancelSale($data){
+        $this->trashCartTrait($data);
+    }
 
     public function render()
     {

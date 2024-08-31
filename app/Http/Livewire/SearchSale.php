@@ -6,24 +6,32 @@ use App\Http\Models\Carts;
 use App\Http\Models\Cliente;
 use App\Traits\CartTrait;
 use http\Exception;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
-use App\Constants\IconConstants;
+
 
 
 class SearchSale extends Component
 {
     use CartTrait;
-    public $codeSale;
+    public $searchSale;
 
-    protected $listeners = [
-        'searchSale'  =>  'searchSale'
+//    protected $listeners = [
+//        'searchSale'  =>  'searchSale'
+//    ];
+
+    protected $rules = [
+        'searchSale' => 'required|digits_between:5,10'
+    ];
+
+    protected $messages = [
+        'searchSale.required' => 'O campo código venda é obrigatório.',
+        'searchSale.max' => 'O campo código venda não pode ter mais que 10 caracteres.'
     ];
 
     public function mount()
     {
-       
+
     }
 
     /**
@@ -33,16 +41,20 @@ class SearchSale extends Component
     public function searchSale()
     {
         try {
+            $data = $this->validate($this->rules);
 
-           dd($this->codeSale);
 
-          
+
+        } catch (ValidationException $e) {
+            session()->flash('error',$e->validator->errors()->first('searchSale'));
+            $this->emit('focusInputSaleSearch');
+
         } catch (Exception $e) {
-            dd($e);
+            session()->flash('error',$e->getMessage());
         }
     }
 
-  
+
     public function render()
     {
         return view('livewire.search-sale');

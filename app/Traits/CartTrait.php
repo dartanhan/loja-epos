@@ -266,24 +266,17 @@ trait CartTrait {
 //    }
 
 
-
     /**
      * Limpa o carrinho da venda
-    */
-    public function trashCart() {
-            Cart::session($this->userId)->getContent();
-            Cart::clear();
-            $this->efectivo =0;
-            $this->change =0;
-            $this->total = Cart::getTotal();
-            $this->itemsQuantity = Cart::getTotalQuantity();
-            $this->totalPixDebitoCredito =  0;
-            $this->totalCredito =  0;
+     * @param $data
+     */
+    public function trashCartTrait($data) {
 
-            Session::remove("codigoVenda");
-            $this->emit('codigo-venda',null);
-            $this->emit('global-msg', 'Venda Finalizada com Sucesso!');
-            $this->emitTo('cart-total','trashCartTotal', null);
+        $deletedRows  = Carts::where('user_id',$data['user_id'])->where('status' , StatusVenda::ABERTO)->delete();
+
+        if ($deletedRows > 0) {
+            $this->emit("message", "Venda cancelada com sucesso!", IconConstants::ICON_SUCCESS, IconConstants::COLOR_GREEN,true,true);
+        }
     }
 
     /**
@@ -408,7 +401,7 @@ trait CartTrait {
     }
 
     private function getClientId(){
-        $this->clienteId = null;
+        $this->clienteId = 0;
         if ($this->cartItems->isNotEmpty() && optional($this->cartItems->first()->clientes)->isNotEmpty()){
             //$cartTotal += $this->cartItems[0]->clientes[0]->taxa;
             $this->clienteId = $this->cartItems[0]->clientes[0]->id;

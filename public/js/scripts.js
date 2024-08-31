@@ -78,13 +78,27 @@ $(document).ready(function() {
     // $( '#searchProduct' ).select2( {
     //     theme: 'bootstrap4'
     // } );
-   
+
 });
     /***
      * Cancela a venda
      */
-    function cancelSale(){
-        console.log('cancelSale');
+    function cancelSale(user_id){
+        console.log('cancelSale' , user_id);
+
+        (async () => {
+            let confirmado = await ConfirmaAll('Você deseja realmente cancelar à venda?',
+                'Tem certeza?','question','Não','#d33',
+                'Sim, cancelar!','#3085d6');
+            console.log('Confirmado:', confirmado);
+            if(confirmado){
+                let data = {
+                    user_id :  user_id,
+                }
+                Livewire.emitTo('cart-component', 'cancelSale', data);
+            }
+        })();
+
     }
 
     /***
@@ -323,6 +337,13 @@ document.addEventListener('DOMContentLoaded', function() {
         refresh(msg);
     });
 
+    window.livewire.on('focusInputSaleSearch', msg => {
+        const searchSale = document.getElementById('searchSale');
+        setTimeout(() => {
+            searchSale.focus();
+        }, 200);
+    });
+
     /***
      * Exibe ou não o DIV de Forma de Entrega
      */
@@ -368,28 +389,19 @@ document.addEventListener('DOMContentLoaded', function() {
     $('.remover-cliente-associado').on('click', function () {
         // console.log('remover-cliente-associado');
 
-        Swal.fire({
-            title: 'Tem certeza?',
-            text: "Você deseja realmente remover o cliente da venda?",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Sim, remover!',
-            cancelButtonText: 'Cancelar',
-            customClass: {
-                cancelButton: 'btn btn-danger',
-                confirmButton: 'btn btn-primary',
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
+        (async () => {
+            let confirmado = await ConfirmaAll('Você deseja realmente remover o cliente da venda?',
+                'Tem certeza?','warning','Cancelar','#d33',
+                'Sim, remover!','#3085d6');
+            console.log('Confirmado:', confirmado);
+            if(confirmado){
                 let data = {
                     user_id :  $(this).data('user-id'),
                     cliente_id :  $(this).data('cliente-id')
                 }
                 window.livewire.emit('removerCliente', data);
             }
-        });
+        })();
     });
 
     /**
@@ -651,10 +663,12 @@ function btnFinalizarVenda(acao,value){
         });
 
         // Prevent the modal from closing when the close button is clicked
-        $('#closeModalBtn, #closeModalFooterBtn').on('click', function (e) {
+        $('#closeModalBtn, #closeModalFooterBtn,#closeModalPrintSale').on('click', function (e) {
             e.preventDefault();
             $('#slideInModal').modal('hide');
             $('#slideInModalFecharVenda').modal('hide');
+            $('#openModalPrintSale').modal('hide');
+
             focusInputSearch();
         });
 
@@ -695,18 +709,22 @@ function btnFinalizarVenda(acao,value){
         });
     });
 
-/**
- * Coloca o focus no campo de pesquisa de produtos
- * */
-function focusInputSearch() {
-    // console.log("foi");
-    //Adicona ao focus ao input, após abrir a modal
-    const searchProduct = document.getElementById('searchProduct');
-    setTimeout(() => {
-        searchProduct.focus();
-    }, 500);
-}
+    /**
+     * Coloca o focus no campo de pesquisa de produtos
+     * */
+    function focusInputSearch() {
+        // console.log("foi");
+        //Adicona ao focus ao input, após abrir a modal
+        const searchProduct = document.getElementById('searchProduct');
+        setTimeout(() => {
+            searchProduct.focus();
+        }, 500);
+    }
 
+
+/**
+ * Função para exibir o alerta de confirmação
+ * */
 function Confirma(id, eventName, text) {
     Swal({
         title: 'CONFIRMAR',
@@ -716,7 +734,11 @@ function Confirma(id, eventName, text) {
         cancelButtonText: 'Fechar',
         cancelButtonColor: '#fff',
         confirmButtonColor: '#bb0a30',
-        confirmButtonText: 'Remover'
+        confirmButtonText: 'Remover',
+        customClass: {
+            cancelButton: 'btn btn-danger',
+            confirmButton: 'btn btn-primary',
+        }
     }).then(function(result) {
         if (result.value) {
             // console.log("eventName >> " + eventName,id);
@@ -724,8 +746,33 @@ function Confirma(id, eventName, text) {
             //window.livewire.emit("clienteAtualizado");
             Swal.close();
         }
+    });
+}
 
-    })
+async function ConfirmaAll(text='',title='CONFIRMAR',
+                     icon='warning',
+                     cancelButtonText='Fechar',
+                     cancelButtonColor='#fff',
+                     confirmButtonText='Remover',
+                     confirmButtonColor='#bb0a30') {
+    let retorno = false;
+
+    const result = await Swal.fire({
+        title: title,
+        text: text,
+        icon: icon,
+        showCancelButton: true,
+        confirmButtonColor: confirmButtonColor,
+        cancelButtonColor: cancelButtonColor,
+        confirmButtonText: confirmButtonText,
+        cancelButtonText: cancelButtonText,
+        customClass: {
+            cancelButton: 'btn btn-danger',
+            confirmButton: 'btn btn-primary',
+        }
+    });
+console.log('retornor', retorno);
+    return result.isConfirmed;
 }
 
 /**
