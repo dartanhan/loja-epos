@@ -9,6 +9,7 @@ use App\Http\Models\FormaPagamento;
 use App\Http\Models\Loja;
 use App\Http\Models\ProdutoVariacao;
 use App\Http\Models\TaxaCartao;
+use App\Http\Models\Usuario;
 use App\Http\Models\VendaProdutos;
 use App\Http\Models\Vendas;
 use App\Http\Models\VendasCashBack;
@@ -84,16 +85,12 @@ trait CartTrait {
            Carts::create($carts);
         }
         $this->loadCartItemsTrait();
+
         $this->emit("message", "Item adicionado com sucesso!", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN);
         $this->emitTo('incluir-cart','cartUpdated');
         $this->emitTo('total-sale','totalSaleVendaUpdated','', $this->hasCashback);
         $this->emitTo('incluir-totais','totaisUpdated');
         $this->barcode = "";
-
-        //bacalhau apra dar refresh na tela , pois a forma de pagamento quando fehca a venda não exibe o card quando venda dupla
-        if($this->totalItens <= 1)
-        $this->emit('refresh', true);
-
     }
 
     /**
@@ -405,6 +402,7 @@ trait CartTrait {
         if ($this->cartItems->isNotEmpty() && optional($this->cartItems->first()->clientes)->isNotEmpty()){
             //$cartTotal += $this->cartItems[0]->clientes[0]->taxa;
             $this->clienteId = $this->cartItems[0]->clientes[0]->id;
+            $this->clienteName = $this->cartItems[0]->clientes[0]->nome;
         }
     }
     /**
@@ -437,6 +435,9 @@ trait CartTrait {
 //                //$cartTotal += $this->cartItems[0]->clientes[0]->taxa;
 //                $clienteId = $this->cartItems[0]->clientes[0]->id;
 //            }
+                /**
+                 * Carrega o Id do cliente e o Nome para imprimir no cupom
+                */
                 $this->getClientId();
 
                 $sale = ["codigo_venda" => $data["codigo_venda"],
@@ -500,7 +501,13 @@ trait CartTrait {
 
                     // Prepara os dados para gravar  forma de pagamento
                     $paymentTypesData = [];
+                    $paymentTypes = [];
                     for ($i = 0; $i < count($data['forma_pgto']); $i++) {
+                        $paymentTypes[] = [
+                            'nome' => FormaPagamento::find($data['forma_pgto'][$i]['id'])->nome,
+                            'valor_pgto' => $data['forma_pgto'][$i]['valor']
+                        ];
+
                         $paymentTypesData[] = [
                             'venda_id' => $sale->id,
                             'forma_pagamento_id' => $data['forma_pgto'][$i]['id'],
@@ -508,6 +515,7 @@ trait CartTrait {
                             'taxa' => (float)TaxaCartao::where('forma_id',$data['forma_pgto'][$i]['id'])->first()->valor_taxa
                         ];
                     }
+                    $data['paymentTypes'] = $paymentTypes;
 
                     VendasProdutosTipoPagamento::insert($paymentTypesData);
 
@@ -573,8 +581,10 @@ trait CartTrait {
 
                 // Confirmar a transação
                 DB::commit();
+
+                $this->printSale($data);
                 $this->emit("message", "Venda realizada com sucesso. ", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN,true);
-                // $this->printSale($data);
+
             } catch (\Exception $e) {
                 // Reverter a transação em caso de erro
                 DB::rollBack();
@@ -590,30 +600,33 @@ trait CartTrait {
      * @param $data
      */
     public function printSale($data){
-        //dd($data);
-        $cupom = '';
+        //dd($data, $this->cartItems, $this->clienteName);
+
         try {
 
             $enterprise = Loja::where('id',$data['loja_id'])->where("status",true)->first();
-            $formaPagamento = FormaPagamento::where('id',$data['forma_pgto'])->where("status",true)->first();
+            //$formaPagamento = FormaPagamento::where('id',$data['forma_pgto'])->where("status",true)->first();
             $vendedor = auth()->user()->sexo =='M' ? "Vendedor: " : "Vendedora: ";
 
             $formatter = new \NumberFormatter('pt_BR',  \NumberFormatter::CURRENCY);
 
             $conteudoCupom = '';
             foreach ($this->cartItems as $item){
-                $conteudoCupom .= $this->formataEspacos($item->name,25,'D');
+                $conteudoCupom .= $this->formataEspacos($item->name,36,'D');
                 $conteudoCupom .= $formatter->formatCurrency($item->price, 'BRL') . '      ';
                 $conteudoCupom .= $item->quantidade . '     ';
                 $conteudoCupom .= $formatter->formatCurrency($item->price*$item->quantidade, 'BRL') . "\n\r";
             }
 
-          /*  $cupom =  "                       " .$enterprise->razao . "\n\r"
-            . "      " . $enterprise->endereco . " - " . $enterprise->local . "\n\r";
-            $this->printer($cupom);
-            return;*/
+            /**
+             * Forma de pagamento da venda
+             */
+            $forma_nome ='';
+            foreach ($data['paymentTypes'] as $forma){
+                $forma_nome .= $this->formataEspacos($forma['nome'],50,'D') . '    ' . $formatter->formatCurrency($forma['valor_pgto'], 'BRL') ."\n\r";
+            }
 
-
+            $cupom = '';
             $cupom =  "                       " .$enterprise->razao . "\n\r"
                 . "      " . $enterprise->endereco . " - " . $enterprise->local . "\n\r"
                 . "      Data: " . Carbon::now()->format("d/m/Y H:i:s") . " Tel: " . $enterprise->telefone . "\n\r"
@@ -632,33 +645,144 @@ trait CartTrait {
                 . "TOTAL                                                 " . $formatter->formatCurrency($this->total, 'BRL'). "\n\r"
                 . "FRETE                                                 " . $formatter->formatCurrency($this->frete, 'BRL'). "\n\r"
                 . "----------------------------------------------------------------\n\r"
-                . "VALOR A PAGAR                                    " . $formatter->formatCurrency($this->total, 'BRL'). "\n\r"
+                . "VALOR A PAGAR                                         " . $formatter->formatCurrency($this->total, 'BRL'). "\n\r"
                 . "----------------------------------------------------------------\n\r"
-                . "FORMA DE PAGAMENTO                             $formaPagamento->nome \n\r";
+                . "FORMA DE PAGAMENTO \n\r" .$forma_nome."\n\r";
 
                 if($this->dinheiro > 0){
                     $cupom .= "VALOR RECEBIDO                            " . $formatter->formatCurrency($this->dinheiro, 'BRL'). "\n\r";
                     $cupom .= "TROCO                                     " . $formatter->formatCurrency($this->troco, 'BRL') . "\n\r";
                 }
 
-                $cupom .= "----------------------------------------------------------------\n\r"
-                . $vendedor.auth()->user()->nome ."      |        Codigo Venda: ".$data['codigo_venda'] . "\n\r"
-                . "----------------------------------------------------------------\n\r"
-                . "     PRAZO DE 7 DIAS PARA TROCA MEDIANTE ESTA NOTA       \n\r"
-                . "      (somente com defeito de fabrica ou sem uso)        \n\r"
-                . "  Nao trocamos produtos de promocao,peliculas,esmaltes,  \n\r"
-                . "                   cilios,pincas,colas!                  \n\r"
-                . "            Eletronicos 30 dias para troca!              \n\r"
-                . "                Nao devolvemos dinheiro!                 \n\r"
-                . "                OBRIGADA E VOLTE SEMPRE                  \n\r\n\r \f ";
+                $cupom .= $this->footerCupon($vendedor.auth()->user()->nome, $data['codigo_venda'],$this->clienteName);
+
+            $this->printer($cupom);
+            $this->emit("message", "Impressão da Venda realizada com sucesso! ", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN,false);
 
         } catch (\Exception $e) {
               $this->emit("global-error", " Falha na impressão da venda. ". $e->getMessage());
-        } finally {
-            $this->printer($cupom);
-            $this->emit("message", "Impressão da Venda realizada com sucesso! ", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN,false);
         }
 
+    }
+
+    /**
+     * Re-imprime a venda
+     * @param $sale
+     */
+    public function reprintSaleTrait($sale){
+        //dd($sale);
+
+        try {
+            $formatter = new \NumberFormatter('pt_BR',  \NumberFormatter::CURRENCY);
+            /**
+             * Dados da loja
+            */
+            $enterprise = Loja::where('id',$sale->loja_id)->where("status",true)->first();
+
+            /**
+             * Forma de pagamento da venda
+            */
+            $forma_nome ='';
+            foreach ($sale->forma_pgto as $forma){
+                $forma_nome .= $this->formataEspacos($forma->payments->nome,50,'D') . '    ' . $formatter->formatCurrency($forma->valor_pgto, 'BRL') ."\n\r";
+            }
+            /**
+             * pega o usuório da venda
+            */
+            $user = Usuario::where('id', $sale->usuario_id)->first(); //auth()->user()->sexo =='M' ? "Vendedor: " : "Vendedora: ";
+            $vendedor = $user->sexo =='M' ? "Vendedor: " : "Vendedora: ";
+            $vendedor .= $user->nome;
+
+            /**
+             * pega o cliente da venda
+             */
+            $cliente = '';
+            if ($this->sale && isset($this->sale->cliente) && count($this->sale->cliente) > 0) {
+                $cliente = $this->sale->cliente[0]->nome;
+            }
+
+
+            $conteudoCupom = '';
+            $subTotal = 0;
+            foreach ($sale->products as $item){
+                $conteudoCupom .= $this->formataEspacos($item->descricao,37,'D');
+                $conteudoCupom .= $this->formataEspacos($formatter->formatCurrency($item->valor_produto, 'BRL') ,9,'D'). '      ';
+                $conteudoCupom .= $item->quantidade . '    ';
+                $conteudoCupom .= $formatter->formatCurrency($item->valor_produto*$item->quantidade, 'BRL') . "\n\r";
+
+
+                $subTotal += $item->valor_produto*$item->quantidade;
+            }
+
+            $desconto = $sale->desconto[0]->valor_desconto;
+            $cashback = $sale->cashback[0]->valor ?? 0;
+            $frete  = $sale->frete[0]->valor_entrega ?? 0;
+
+            $total = $subTotal - $desconto - $cashback;
+            $total_pagar = $total + $frete;
+
+            $cupom = '';
+            $cupom =  "                       " .$enterprise->razao . "\n\r"
+                . "      " . $enterprise->endereco . " - " . $enterprise->local . "\n\r"
+                . "      Data: " . Carbon::now()->format("d/m/Y H:i:s") . " Tel: " . $enterprise->telefone . "\n\r"
+                . "                    Santa Cruz, Rio de Janeiro-RJ \n\r"
+                . "----------------------------------------------------------------\n\r"
+                . "                        CUPOM NÃO FISCAL                       \n\r"
+                . "----------------------------------------------------------------\n\r"
+                . "ITEM DESCRIÇÃO                         VALOR      QTD    TOTAL  \n\r"
+                . "----------------------------------------------------------------\n\r"
+                . $conteudoCupom
+                . "----------------------------------------------------------------\n\r"
+                . "TOTAL DE ITENS                                        " . count($sale->products) . "\n\r"
+                . "SUB TOTAL                                             " . $formatter->formatCurrency($subTotal, 'BRL') . "\n\r"
+                . "DESCONTO                                              " . $formatter->formatCurrency($desconto, 'BRL') . "\n\r"
+                . "CASHBACK                                              " . $formatter->formatCurrency($cashback, 'BRL'). "\n\r"
+                . "TOTAL                                                 " . $formatter->formatCurrency($total, 'BRL'). "\n\r"
+                . "FRETE                                                 " . $formatter->formatCurrency($frete, 'BRL'). "\n\r"
+                . "----------------------------------------------------------------\n\r"
+                . "VALOR A PAGAR                                         " . $formatter->formatCurrency($total_pagar, 'BRL'). "\n\r"
+                . "----------------------------------------------------------------\n\r"
+                . "FORMA DE PAGAMENTO \n\r" .$forma_nome."\n\r";
+
+            if($sale->forma_pgto[0]->payments->slug == 'dinheiro'){
+                $cupom .= "VALOR RECEBIDO" . $this->formataEspacos($formatter->formatCurrency($sale->desconto[0]->valor_recebido, 'BRL'),49,'E'). "\n\r";
+                $cupom .= "TROCO" .$this->formataEspacos($formatter->formatCurrency($total - $sale->desconto[0]->valor_recebido, 'BRL'),58,'E') . "\n\r";
+            }
+
+            $cupom .= $this->footerCupon($vendedor, $sale->codigo_venda,$cliente);
+
+           // dd($cupom);
+
+              $this->printer($cupom);
+              $this->emit("message", "Re-Impressão da Venda realizada com sucesso! ", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN,false);
+        } catch (\Exception $e) {
+            $this->emit("global-error", " Falha na reimpressão da venda. ". $e->getMessage());
+        }
+    }
+
+    /**
+     * Composição da parte de baixo do cupom
+     * @param $vendedor
+     * @param $codigo_venda
+     * @param $cliente
+     * @return string
+     */
+    private function footerCupon($vendedor, $codigo_venda,$cliente ){
+            $cupom_cli = '';
+            if($cliente){
+                $cupom_cli = "Cliente: ".$cliente;
+            }
+            return "----------------------------------------------------------------\n\r"
+                . $vendedor ."            |        Codigo Venda: ".$codigo_venda . "\n\r"
+                . $cupom_cli                                                     . "\n\r"
+                . "----------------------------------------------------------------\n\r"
+                . "     PRAZO DE 7 DIAS PARA TROCA MEDIANTE ESTA NOTA       \n\r"
+                . "      (somente com defeito de fábrica ou sem uso)        \n\r"
+                . "  Não trocamos produtos de promocao,peliculas,esmaltes,  \n\r"
+                . "                   cilios,pincas,colas!                  \n\r"
+                . "            Eletrônicos 30 dias para troca!              \n\r"
+                . "                Não devolvemos dinheiro!                 \n\r"
+                . "                OBRIGADA E VOLTE SEMPRE                  \n\r ";
     }
 
     /**
@@ -674,7 +798,7 @@ trait CartTrait {
 
             $printer -> initialize();
             $printer -> setFont(1);
-            $printer -> setLineSpacing(4);
+            $printer -> setLineSpacing(10);
             $printer -> setJustification(0);
             $printer -> selectCharacterTable(3);
 
@@ -762,5 +886,46 @@ trait CartTrait {
     */
     public function lojaId(){
         $this->lojaId = Auth::guard('customer')->user()->loja_id;
+    }
+
+    /**
+     * Formata o CPF
+     */
+    private function formatarCpf($cpf)
+    {
+        // Remove qualquer caracter que não seja número
+        $cpfLimpo = preg_replace('/\D/', '', $cpf);
+
+        // Formata o CPF
+        $cpfFormatado = substr($cpfLimpo, 0, 3) . '.' .
+            substr($cpfLimpo, 3, 3) . '.' .
+            substr($cpfLimpo, 6, 3) . '-' .
+            substr($cpfLimpo, 9, 2);
+
+        return $cpfFormatado;
+    }
+
+    /**
+     * Esconde alguns digitos do Cpf
+     */
+    private function getMaskedCpf($cpf)
+    {
+        // Esconder os primeiros 7 dígitos do CPF e mostrar apenas os últimos 4
+        return substr($cpf, 0, 3) . '.***.***-' . substr($cpf, -2);
+    }
+
+    /**
+     * Esconde alguns digitos do telefone
+    */
+    private function getMaskedPhone($phone)
+    {
+        // Esconder os primeiros dígitos do telefone, mostrar apenas os últimos 4
+        $length = strlen($phone);
+
+        if ($length > 4) {
+            return str_repeat('*', $length - 4) . substr($phone, -4);
+        }
+
+        return $phone; // Retorna o telefone original se tiver 4 dígitos ou menos
     }
 }

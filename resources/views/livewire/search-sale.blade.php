@@ -1,9 +1,9 @@
 <div xmlns:wire="http://www.w3.org/1999/xhtml">
     <div class="card d-flex" wire:ignore>
                 <div class="input-group">
-                    <input type="text" wire:model.defer="codeSale" name="searchSale" id="searchSale"
+                    <input type="text" wire:model.defer="codeSale" name="codeSale" id="codeSale"
                            placeholder="Digite o Código da Venda" maxlength="10"
-                           class="form-control form-control-sm" 
+                           class="form-control form-control-sm"
                            style="padding: 0px 0px 0px 5px" autofocus>
                     <div class="input-group-append">
                         <button type="button" class="btn btn-primary " wire:click.defer="searchSale" data-toggle="tooltip" title="Pesquisar Venda">
@@ -31,5 +31,54 @@
     @if (session()->has('message'))
         <div class="alert alert-success mt-3 text-center">{{ session('message') }}</div>
     @endif
+
+    <div class="card-body">
+
+        @if ($sale)
+            <div class="row">
+                <div class="form-group mb-3">
+                    <div class="form-floating">
+                        <input type="text" id="nome" wire:model.defer="nome" name="nome" class="form-control" readonly>
+                            <label for="nome" class="form-label mb-0 text-monospace">Nome</label>
+                    </div>
+                </div>
+            </div>
+            @if (count($this->sale->cliente) > 0)
+                <div class="row">
+                    <div class="form-group col-md-6 mb-3">
+                        <div class="form-floating">
+                            <input type="text" id="cpf" wire:model.defer="cpf" name="cpf" class="form-control form-control-sm" maxlength="11" readonly>
+                            <label for="cpf" class="form-label mb-0 text-monospace">CPF</label>
+                        </div>
+                    </div>
+                    <div class="form-group col-md-6 mb-3">
+                        <div class="form-floating">
+                            <input type="text" id="telefone" wire:model.defer="telefone" name="telefone" class="form-control form-control-sm" readonly>
+                            <label for="telefone" class="form-label mb-0 text-monospace">Telefone</label>
+                        </div>
+                    </div>
+                </div>
+            @endif
+            <div class="row">
+                <div class="form-group col-md-6 mb-3">
+                    <div class="form-floating">
+                        <input type="text" id="total" wire:model.defer="total" name="total" class="form-control form-control-sm" readonly>
+                        <label for="total" class="form-label mb-0 text-monospace">Valor Total</label>
+                    </div>
+                </div>
+                <div class="form-group col-md-6 mb-3">
+                    <div class="form-floating">
+                        <input type="text" id="total" wire:model.defer="totalPago" name="totalPago" class="form-control form-control-sm" readonly>
+                        <label for="totalPago" class="form-label mb-0 text-monospace">Valor Pago</label>
+                    </div>
+                </div>
+                 <div class="form-group d-flex justify-content-center align-items-center">
+                    <div class="form-floating">
+                        <button class="btn btn-primary btn-sm" data-toggle="tooltip" title="Imprimir Venda" wire:click.defer="reprintSale">IMPRIMIR</button>
+                    </div>
+                </div>
+            </div>
+        @endif
+    </div>
 
 </div>

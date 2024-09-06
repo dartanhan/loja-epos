@@ -15,7 +15,27 @@ class Vendas extends Model
         return  $this->hasMany(VendaProdutos::class);
     }
 
-    function quantityProduct(){
+    function products(){
         return $this->hasMany(VendaProdutos::class, 'venda_id', 'id');
+    }
+
+    function cliente(){
+        return $this->hasMany(Cliente::class, 'id', 'cliente_id');
+    }
+
+    function forma_pgto(){
+        return $this->hasMany(VendasProdutosTipoPagamento::class, 'venda_id', 'id');
+    }
+
+    function desconto(){
+        return $this->hasMany(VendasProdutosDesconto::class, 'venda_id', 'id');
+    }
+
+    function cashback(){
+        return $this->hasMany(VendasCashBack::class, 'venda_id', 'id');
+    }
+
+    function frete(){
+        return $this->hasMany(VendasProdutosEntrega::class, 'venda_id', 'id');
     }
 }

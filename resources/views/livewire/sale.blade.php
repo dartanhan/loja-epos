@@ -26,7 +26,7 @@
                     Forma de Pagamento
                 </div>
                 <div class="card-body text-monospace p-2 mb-1">
-                    <select class="form-select chosen-select" id="formaPgto" multiple data-placeholder="Selecione forma de Pagamento">
+                    <select class="form-select chosen-select chosen-forma-pagamento" id="formaPgto" multiple data-placeholder="Selecione forma de Pagamento">
                         @foreach($paymentMethods as $payment)
                             <option value="{{ $payment->id }}" data-slug="{{$payment->slug}}" data-text="{{ $payment->nome }}">{{ $payment->nome }}</option>
                         @endforeach

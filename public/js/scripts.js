@@ -112,13 +112,19 @@ $(document).ready(function() {
             keyboard: false      // Disables closing the modal with the ESC key
         }).modal('show');
 
-        //Adicona ao focus ao input, após abrir a modal
-        const searchSale = document.getElementById('searchSale');
-        setTimeout(() => {
-            searchSale.focus();
-        }, 500);
+        focusInputCodeSale();
     }
 
+    /**
+     * Focus no campo search-sale.blade.php
+     * */
+    function focusInputCodeSale(){
+        //Adicona ao focus ao input, após abrir a modal
+        const codeSale = document.getElementById('codeSale');
+        setTimeout(() => {
+            codeSale.focus();
+        }, 500);
+    }
 /***
  * FORMATA CAMPO COM MOEDA
  *
@@ -299,6 +305,17 @@ function finalizeSale(codigo_venda,status) {
         });
     }
 
+    /**
+     * Ao dar enter no campo searchSale, ele executa a ação no livewire
+     * search-sale.blade.php
+     * */
+    document.getElementById('codeSale').addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+            // Chama o método searchSale do Livewire
+            window.livewire.emitTo('search-sale','searchSale');
+        }
+    });
+
 /**
  * Notificações disparadas pelo liveware
  * */
@@ -337,11 +354,8 @@ document.addEventListener('DOMContentLoaded', function() {
         refresh(msg);
     });
 
-    window.livewire.on('focusInputSaleSearch', msg => {
-        const searchSale = document.getElementById('searchSale');
-        setTimeout(() => {
-            searchSale.focus();
-        }, 200);
+    window.livewire.on('focusInputCodeSale', msg => {
+        focusInputCodeSale();
     });
 
     /***
@@ -425,6 +439,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         window.livewire.emitTo('sale', 'vendaUpdated',formaEntregaAlias, selectedValue);
     });
+
 });
 
 /**
@@ -483,96 +498,7 @@ function btnFinalizarVenda(acao,value){
     // let allPaymentMethods = null;
     //Livewire.on('formaPgtoChanged', (acao,value) => {}
 
-    $('#formaPgto').on('change', function() {
-        ordemSelecionada = [];
-        selectedOptions = '';
-        card_venda_dupla = document.getElementById('card_venda_dupla');
-        card_dinheiro = document.getElementById('card_dinheiro');
 
-        // Obtém o valor do item selecionado
-        selectedOptions = $(this).find(':selected');
-        //ao selecionar apenas uma forma de pagamento , abilita os botões
-        btnFinalizarVenda(true, 1);
-
-        // Limpa o container antes de adicionar novos inputs e reseta a ordem de seleção
-        $('#paymentInputsContainer').empty();
-
-        // let valorTotal = $('.total-value.total-card').text();
-        // let valorTotalVenda = parseFloat(valorTotal.replace('R$', '').trim().replace(',', '.'));
-        console.log('selectedOptions.length', selectedOptions.length);
-        if (selectedOptions.length === 0) {
-            btnFinalizarVenda(true, 0);
-            card_dinheiro.style.display = 'none';
-            card_venda_dupla.style.display = 'none';
-        }
-
-        // Verifica se há exatamente 2 opções selecionadas
-        if (selectedOptions.length === 2) {
-            card_venda_dupla.style.display = 'block';
-            card_dinheiro.style.display = 'none';
-
-            selectedOptions.each(function () {
-                let slug = $(this).data('slug');
-                let texto = $(this).data('text');
-                let paymentMethod = $(this).val();
-
-                // Adiciona o slug ao array de ordem, se ainda não estiver presente
-                if (!ordemSelecionada.includes(slug)) {
-                    ordemSelecionada.push({ slug, texto, paymentMethod });
-                }
-            });
-
-            // Renderiza os inputs na ordem correta
-            ordemSelecionada.forEach(function (item) {
-                let inputHtml = `
-                        <div class="payment-input mb-1">
-                            <label for="input-${item.slug}">${item.texto}</label>
-                            <input type="text" id="${item.slug}" name="${item.slug}" data-id="${item.paymentMethod}"
-                            placeholder="${item.texto}" aria-label="${item.texto}" aria-describedby="${item.texto}"
-                            data-prefix="R$ " data-thousands="." data-decimal=","
-                            class="form-control">
-                        </div>
-                    `;
-                $('#paymentInputsContainer').append(inputHtml);
-            });
-
-            // Configura eventos e máscaras para os inputs gerados
-            ordemSelecionada.forEach(function (item) {
-                $(`#${item.slug}`).maskMoney();
-                $(`#${item.slug}`).on('input keydown keypress', function() {
-                    let valor = $(this).val();
-                    atualizarValores(item.slug, valor, totalVenda());
-                });
-
-                // Deixa o primeiro campo habilitado e os demais desabilitados
-                 if (ordemSelecionada[0].slug === item.slug) {
-                    // $(`#${item.slug}`).prop('disabled', false);
-                     //$(`#${item.slug}`).focus();
-                     setTimeout(() => {
-                         $(`#${item.slug}`).focus();
-                     }, 200);
-                 }
-                 //else {
-                //     $(`#${item.slug}`).prop('disabled', true);
-                // }
-            });
-        }
-
-        // Caso tenha apenas uma opção selecionada e seja "dinheiro"
-        if (selectedOptions.length === 1 && selectedOptions[0].dataset.slug === 'dinheiro') {
-            card_dinheiro.style.display = 'block';
-            card_venda_dupla.style.display = 'none';
-            window.livewire.emit('updatedValorRecebido', 0);
-            setTimeout(() => {
-                document.getElementById('dinheiro').focus();
-            }, 200);
-        }
-
-        // Caso tenha apenas uma opção selecionada diferente
-        if (selectedOptions.length === 1) {
-            card_venda_dupla.style.display = 'none';
-        }
-    });
 
     function atualizarValores(slugAtual, valor, valorTotalVenda) {
         let valorDigitado = parseFloat(valor.replace('R$', '').trim().replace(',', '.')) || 0;
@@ -706,6 +632,112 @@ function btnFinalizarVenda(acao,value){
 
         $('#closeMenuModal').on('click', function () {
             $('#openMenuModal').modal('hide');
+        });
+
+
+        // Função que atribui o evento change ao select
+        function bindChosenFormaPagamento() {
+            /**
+             * Ao selecionar no combo de forma de pagamento exibe card apra adicioanr valores de pagamentos
+             * */
+            $('.chosen-forma-pagamento').on('change', function() {
+                ordemSelecionada = [];
+                selectedOptions = '';
+                card_venda_dupla = document.getElementById('card_venda_dupla');
+                card_dinheiro = document.getElementById('card_dinheiro');
+
+                // Obtém o valor do item selecionado
+                selectedOptions = $(this).find(':selected');
+                //ao selecionar apenas uma forma de pagamento , abilita os botões
+                btnFinalizarVenda(true, 1);
+
+                // Limpa o container antes de adicionar novos inputs e reseta a ordem de seleção
+                $('#paymentInputsContainer').empty();
+
+                // let valorTotal = $('.total-value.total-card').text();
+                // let valorTotalVenda = parseFloat(valorTotal.replace('R$', '').trim().replace(',', '.'));
+                console.log('selectedOptions.length', selectedOptions.length);
+                if (selectedOptions.length === 0) {
+                    btnFinalizarVenda(true, 0);
+                    card_dinheiro.style.display = 'none';
+                    card_venda_dupla.style.display = 'none';
+                }
+
+                // Verifica se há exatamente 2 opções selecionadas
+                if (selectedOptions.length === 2) {
+                    card_venda_dupla.style.display = 'block';
+                    card_dinheiro.style.display = 'none';
+
+                    selectedOptions.each(function () {
+                        let slug = $(this).data('slug');
+                        let texto = $(this).data('text');
+                        let paymentMethod = $(this).val();
+
+                        // Adiciona o slug ao array de ordem, se ainda não estiver presente
+                        if (!ordemSelecionada.includes(slug)) {
+                            ordemSelecionada.push({ slug, texto, paymentMethod });
+                        }
+                    });
+
+                    // Renderiza os inputs na ordem correta
+                    ordemSelecionada.forEach(function (item) {
+                        let inputHtml = `
+                        <div class="payment-input mb-1">
+                            <label for="input-${item.slug}">${item.texto}</label>
+                            <input type="text" id="${item.slug}" name="${item.slug}" data-id="${item.paymentMethod}"
+                            placeholder="${item.texto}" aria-label="${item.texto}" aria-describedby="${item.texto}"
+                            data-prefix="R$ " data-thousands="." data-decimal=","
+                            class="form-control">
+                        </div>
+                    `;
+                        $('#paymentInputsContainer').append(inputHtml);
+                    });
+
+                    // Configura eventos e máscaras para os inputs gerados
+                    ordemSelecionada.forEach(function (item) {
+                        $(`#${item.slug}`).maskMoney();
+                        $(`#${item.slug}`).on('input keydown keypress', function() {
+                            let valor = $(this).val();
+                            atualizarValores(item.slug, valor, totalVenda());
+                        });
+
+                        // Deixa o primeiro campo habilitado e os demais desabilitados
+                        if (ordemSelecionada[0].slug === item.slug) {
+                            // $(`#${item.slug}`).prop('disabled', false);
+                            //$(`#${item.slug}`).focus();
+                            setTimeout(() => {
+                                $(`#${item.slug}`).focus();
+                            }, 200);
+                        }
+                        //else {
+                        //     $(`#${item.slug}`).prop('disabled', true);
+                        // }
+                    });
+                }
+
+                // Caso tenha apenas uma opção selecionada e seja "dinheiro"
+                if (selectedOptions.length === 1 && selectedOptions[0].dataset.slug === 'dinheiro') {
+                    card_dinheiro.style.display = 'block';
+                    card_venda_dupla.style.display = 'none';
+                    window.livewire.emit('updatedValorRecebido', 0);
+                    setTimeout(() => {
+                        document.getElementById('dinheiro').focus();
+                    }, 200);
+                }
+
+                // Caso tenha apenas uma opção selecionada diferente
+                if (selectedOptions.length === 1) {
+                    card_venda_dupla.style.display = 'none';
+                }
+            });
+        }
+
+        // Atribui o evento na carga inicial
+        bindChosenFormaPagamento();
+
+        // Reatribui o evento sempre que o Livewire atualizar o componente
+        Livewire.hook('message.processed', (message, component) => {
+            bindChosenFormaPagamento();
         });
     });
 
