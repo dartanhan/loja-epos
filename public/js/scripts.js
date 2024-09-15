@@ -24,7 +24,7 @@ let pagamentos = [];
 
 $(document).ready(function() {
     // $('[data-toggle="tooltip"]').tooltip();
-
+    $('.chosen-tipo-troca').chosen();
     /***
      * PESQUISA DE PRODUTOS
      * */
@@ -65,7 +65,6 @@ $(document).ready(function() {
             setTimeout(() => {
                 $("#searchProduct").val('');
                 //Adicona ao focus ao input, de pesqusia de produtos
-
             }, 200);
         }
     });
@@ -80,6 +79,20 @@ $(document).ready(function() {
     // } );
 
 });
+    /***
+     * troca produto da venda
+     */
+    function swapSale(){
+        console.log('openModalSwapSale', 'swapSale');
+
+        $('#openModalSwapSale').modal({
+            // backdrop: 'static',  // Disables closing the modal by clicking outside of it
+            keyboard: false      // Disables closing the modal with the ESC key
+        }).modal('show');
+        focusInputSearch('codeSale');
+        Livewire.emit('resetInputFields');
+    }
+
     /***
      * Cancela a venda
      */
@@ -98,7 +111,6 @@ $(document).ready(function() {
                 Livewire.emitTo('cart-component', 'cancelSale', data);
             }
         })();
-
     }
 
     /***
@@ -112,19 +124,20 @@ $(document).ready(function() {
             keyboard: false      // Disables closing the modal with the ESC key
         }).modal('show');
 
-        focusInputCodeSale();
+       //focusInputCodeSale();
+        focusInputSearch('codeSale');
     }
 
     /**
      * Focus no campo search-sale.blade.php
      * */
-    function focusInputCodeSale(){
-        //Adicona ao focus ao input, após abrir a modal
-        const codeSale = document.getElementById('codeSale');
-        setTimeout(() => {
-            codeSale.focus();
-        }, 500);
-    }
+    // function focusInputCodeSale(){
+    //     //Adicona ao focus ao input, após abrir a modal
+    //     const codeSale = document.getElementById('codeSale');
+    //     setTimeout(() => {
+    //         codeSale.focus();
+    //     }, 500);
+    // }
 /***
  * FORMATA CAMPO COM MOEDA
  *
@@ -335,13 +348,13 @@ document.addEventListener('DOMContentLoaded', function() {
             refresh(msg);
         }
         if(focusInput){
-            focusInputSearch();
+            focusInputSearch('searchProduct');
         }
     });
 
-    window.livewire.on('focus-input-search', msg => {
-        document.getElementById('searchProduct').focus();
-    });
+    // window.livewire.on('focus-input-search', msg => {
+    //     document.getElementById('searchProduct').focus();
+    // });
 
     /**
      * Caso a venda seja negativa desabilita os btoão de finalizar venda
@@ -354,8 +367,14 @@ document.addEventListener('DOMContentLoaded', function() {
         refresh(msg);
     });
 
-    window.livewire.on('focusInputCodeSale', msg => {
-        focusInputCodeSale();
+    window.livewire.on('focusInputSearch', msg => {
+        //focusInputCodeSale();
+        focusInputSearch(msg);
+    });
+
+    window.livewire.on('closeModal', modal => {
+        //focusInputCodeSale();
+        $('#'+modal).modal('hide');
     });
 
     /***
@@ -451,6 +470,14 @@ function activateTooltipsAndFormatting() {
 }
 
 /**
+ * Chama no hook do livewiere para recarregar as propriedades do DOM após reload do Livewire
+ * */
+function bindChosenSelect(param){
+    //$('.chosen-tipo-venda').chosen();
+    console.log(param);
+    $('.'+param).chosen();
+}
+/**
  * Ativa ou desativa o botão de finalizar venda
  * */
 let finalizarVendaBtns = null;
@@ -492,14 +519,8 @@ function btnFinalizarVenda(acao,value){
 }
 
     /**
-     * Ativa desativa o button de finalizar venda no modal quando valor diferente de ""
+     *
      * */
-
-    // let allPaymentMethods = null;
-    //Livewire.on('formaPgtoChanged', (acao,value) => {}
-
-
-
     function atualizarValores(slugAtual, valor, valorTotalVenda) {
         let valorDigitado = parseFloat(valor.replace('R$', '').trim().replace(',', '.')) || 0;
         let valorRestante = valorTotalVenda - valorDigitado;
@@ -584,18 +605,21 @@ function btnFinalizarVenda(acao,value){
             if (e.key === 'Escape') {
                 $('#slideInModal').modal('hide');
                 $('#slideInModalFecharVenda').modal('hide');
-                focusInputSearch();
+                focusInputSearch('searchProduct');
             }
         });
 
         // Prevent the modal from closing when the close button is clicked
-        $('#closeModalBtn, #closeModalFooterBtn,#closeModalPrintSale').on('click', function (e) {
+        $('#closeModalBtn, #closeModalFooterBtn,#closeModalPrintSale,#closeModalSwapSale').on('click', function (e) {
             e.preventDefault();
             $('#slideInModal').modal('hide');
             $('#slideInModalFecharVenda').modal('hide');
             $('#openModalPrintSale').modal('hide');
+            $('#openModalSwapSale').modal('hide');
 
-            focusInputSearch();
+
+            focusInputSearch('searchProduct');
+            Livewire.emit('resetInputFields');
         });
 
         /**
@@ -734,22 +758,25 @@ function btnFinalizarVenda(acao,value){
 
         // Atribui o evento na carga inicial
         bindChosenFormaPagamento();
+        bindChosenSelect('chosen-tipo-venda');
 
         // Reatribui o evento sempre que o Livewire atualizar o componente
         Livewire.hook('message.processed', (message, component) => {
             bindChosenFormaPagamento();
+            bindChosenSelect('chosen-tipo-troca');
         });
+
     });
 
     /**
-     * Coloca o focus no campo de pesquisa de produtos
+     * Coloca o focus no campo de onde recebe por parâmetro o nome do campo
      * */
-    function focusInputSearch() {
-        // console.log("foi");
+    function focusInputSearch(focusInput ) {
+         console.log("focusInputSearch", focusInput);
         //Adicona ao focus ao input, após abrir a modal
-        const searchProduct = document.getElementById('searchProduct');
+        const focus = document.getElementById(focusInput);
         setTimeout(() => {
-            searchProduct.focus();
+            focus.focus();
         }, 500);
     }
 
@@ -820,37 +847,40 @@ function isModalAberto() {
 }
 
 
-/**
- * Confirmação de exclusão
- * */
+    /**
+     * Confirmação de exclusão
+     * */
 
-function Confirm(id, eventName, text) {
-    Swal.fire({
-        title: 'CONFIRMAR',
-        text: text,
-        icon: 'question',
-        showCancelButton: true,
-        cancelButtonText: 'Não',
-        cancelButtonColor: '#d33',
-        confirmButtonColor: '#3085d6',
-        confirmButtonText: 'Sim'
-    }).then(function(result) {
-        // console.log(eventName, id);
-        if (result.value) {
-            window.livewire.emit(eventName, id)
-            // window.livewire.emitTo('cart-component','eventoDeA', id)
-            swal.close()
-        }
+    function Confirm(id, eventName, text) {
+        Swal.fire({
+            title: 'CONFIRMAR',
+            text: text,
+            icon: 'question',
+            showCancelButton: true,
+            cancelButtonText: 'Não',
+            cancelButtonColor: '#d33',
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'Sim'
+        }).then(function(result) {
+            // console.log(eventName, id);
+            if (result.value) {
+                window.livewire.emit(eventName, id)
+                // window.livewire.emitTo('cart-component','eventoDeA', id)
+                swal.close()
+            }
 
+        });
+    }
+
+    /**
+     *
+     * */
+    $('#get-selected-ids').on('click', function() {
+        // Seleciona todos os checkboxes marcados com a classe 'product-checkbox'
+        let selectedIds = $('.product-checkbox:checked').map(function() {
+            return $(this).data('id'); // Pega o valor de 'data-id'
+        }).get();
+
+        // Exibe os IDs selecionados
+        console.log('IDs dos produtos selecionados:', selectedIds);
     });
-}
-
-// Livewire.on('scan-code-byid', postId => {
-//     Snackbar.show({
-//         text: "OK",
-//         actionText: 'FECHAR',
-//         actionTextColor: '#fff',
-//         backgroundColor: postId == 1 ? '#3b3f5c' : '#e7515a',
-//         pos: 'top-right'
-//     });
-// })

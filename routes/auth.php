@@ -53,12 +53,13 @@ Route::middleware('auth:customer')->group(function () {
     })->middleware(['auth'])->name('dashboard');
 
     Route::get('/search', [CartComponent::class, 'search']);
+    Route::get('/home', CartComponent::class)->name('home');
 
   /*  Route::get('/home', function () {
         return view('home');
     })->middleware(['auth'])->name('home');*/
 
     //Route::get('/home', Pos::class)->name('home');
-    Route::get('/home', CartComponent::class)->name('home');
-    Route::get('/search-products', [ProductSearch::class, 'search']);
+
+ //   Route::get('/search-products', [ProductSearch::class, 'search']);
 });

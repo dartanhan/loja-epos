@@ -79,13 +79,13 @@ class SearchSale extends Component
                     $this->telefone = $this->getMaskedPhone($this->sale->cliente[0]->telefone);
                 }
             }else{
-                session()->flash('error', "Atenção! Venda código {$this->codeSale}, não localizada!");
-                $this->emit('focusInputCodeSale');
+                session()->flash('notfound', "Atenção! Venda código {$this->codeSale}, não localizada!");
+                $this->emit('focusInputSearch','codeSale');
             }
 
         } catch (ValidationException $e) {
             session()->flash('error',$e->validator->errors()->first('codeSale'));
-            $this->emit('focusInputCodeSale');
+            $this->emit('focusInputSearch','codeSale');
 
         } catch (Exception $e) {
             session()->flash('error',$e->getMessage());

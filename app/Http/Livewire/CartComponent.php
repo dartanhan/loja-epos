@@ -4,11 +4,9 @@
 namespace App\Http\Livewire;
 
 use App\Constants\IconConstants;
-use App\Http\Models\Carts;
 use App\Http\Models\ProdutoVariacao;
 use App\Traits\CartTrait;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
 class CartComponent extends Component {
@@ -50,8 +48,9 @@ class CartComponent extends Component {
 
         $this->products = ProdutoVariacao::with('images')->where(function($query) {
             $query->where('variacao', 'like', '%' . $this->searchTerm . '%')
-                ->orWhere('subcodigo', 'like', '%' . $this->searchTerm . '%')
-                ->orWhere('descricao', 'like', '%' . $this->searchTerm . '%');
+                    ->orWhere('subcodigo', 'like', '%' . $this->searchTerm . '%')
+                    ->orWhere('descricao', 'like', '%' . $this->searchTerm . '%')
+                    ->orWhere('gtin', 'like', '%' . $this->searchTerm . '%');
         })->where('quantidade', '>', 0)
             ->join('loja_produtos_new as lpn', 'lpn.id', '=', 'loja_produtos_variacao.products_id')
             ->select('loja_produtos_variacao.*', 'lpn.descricao as produto_descricao',  'lpn.categoria_id', 'lpn.fornecedor_id')

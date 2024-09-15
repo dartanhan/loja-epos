@@ -17,15 +17,11 @@ use App\Http\Models\VendasProdutosDesconto;
 use App\Http\Models\VendasProdutosEntrega;
 use App\Http\Models\VendasProdutosTipoPagamento;
 use Carbon\Carbon;
-use Darryldecode\Cart\Facades\CartFacade as Cart;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Response;
-use Illuminate\Support\Facades\Session;
 use Mike42\Escpos\PrintConnectors\NetworkPrintConnector;
 use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
 use Mike42\Escpos\Printer;
-use PHPUnit\Framework\Constraint\Count;
 
 
 trait CartTrait {
@@ -324,7 +320,7 @@ trait CartTrait {
     {
         $this->cartItems =  Carts::with(['variations.produtos','clientes','cashback'])
             ->where('user_id',  $this->userId  )
-            ->where('status',  'ABERTO' )
+            ->whereIn('status',  ['ABERTO' ,'TROCA'])
             ->orderBy('id','desc')
             ->get();
 
@@ -414,14 +410,16 @@ trait CartTrait {
         //  $this->printSale($data);
         DB::beginTransaction();
 
-        if($data['status'] == StatusVenda::PENDENTE){
+        if($data['status'] == StatusVenda::PENDENTE) {
             $ids = $this->cartItems->pluck('id')->toArray();
-           //dd($ids);
+            //dd($ids);
             Carts::whereIn('id', $ids)->update(['status' => $data['status']]);
 
             DB::commit();
-            $this->emit("message", "Venda salva com sucesso!. ", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN,true);
+            $this->emit("message", "Venda salva com sucesso!. ", IconConstants::ICON_SUCCESS, IconConstants::COLOR_GREEN, true);
 
+        }elseif ($data['status'] == StatusVenda::TROCA){
+         dd();
         }else{
 
             $clienteId = null;

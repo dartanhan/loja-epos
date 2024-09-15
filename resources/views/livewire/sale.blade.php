@@ -66,22 +66,18 @@
                 </div>
                 <div class="card-body item-list">
                     <table class="table table-hover table-striped table-responsive">
-                        <thead class="table-dark">
-                            <tr class="text-center">
-                                <th class="" colspan="2">Descrição</th>
-                                <th class="">Valor</th>
-                                <th class="">Qtd</th>
-                                <th class="">Subtotal</th>
-                            </tr>
-                        </thead>
+{{--                        <thead class="table-dark">--}}
+{{--                            <tr class="text-center">--}}
+{{--                                <th class="" colspan="2">Descrição</th>--}}
+{{--                                <th class="">Valor</th>--}}
+{{--                                <th class="">Qtd</th>--}}
+{{--                                <th class="">Subtotal</th>--}}
+{{--                            </tr>--}}
+{{--                        </thead>--}}
                         <tbody>
                             @foreach($cartItems as $item)
                                 <tr>
                                     <td class="p-1" style="width: 120px;">
-{{--                                        <img src="{{$this->getImageUrl($item)}}"--}}
-{{--                                             alt="{{$item->name}}"--}}
-{{--                                             title="{{$item->name}}" data-toggle="tooltip" data-placement="top"--}}
-{{--                                             class="product-img rounded " wire:ignore/>--}}
 
                                         @if(!empty($item->imagem))
                                             <span class="cart-product-img cart-product-img-view"
