@@ -1,0 +1,233 @@
+/*.table-bordered td, .table-bordered th {*/
+/*	border: none!important;*/
+/*}*/
+/*@media (min-width: 768px) {*/
+/*	.col-sm-3half, .col-sm-8half {*/
+/*		float: left;*/
+/*	}*/
+/*	.col-sm-3half {*/
+/*		width: 50%;*/
+/*	}*/
+/*	.col-sm-8half {*/
+/*		width: 50%;*/
+/*	}*/
+
+/*}*/
+/*.den {*/
+/*	font-size: 15px!important;*/
+/*}*/
+
+/*.input-gp {*/
+/*	background: #3B3F5C!important; color:white!important;*/
+
+/*}*/
+
+/*.container {*/
+/*    max-width: 2200px;*/
+/*    margin: 0 auto;*/
+/*    border: 1px solid #ccc;*/
+/*    overflow: hidden;*/
+/*    font-family: "Courier New", Courier, monospace;*/
+/*}*/
+
+/*.header_pdv {*/
+/*    background-color: #1b1918;*/
+/*    color: white;*/
+/*    height: 50px;*/
+/*    display: flex;*/
+/*    justify-content: space-between;*/
+/*    align-items: center;*/
+/*}*/
+
+/*.operadora, .logo {*/
+/*    display: inline-block;*/
+/*    vertical-align: middle;*/
+/*}*/
+
+/*.operadora {*/
+/*    margin-left: 50px;*/
+/*}*/
+
+/*.operadora p {*/
+/*    color: white;*/
+/*    font-size: 16px;*/
+/*    text-transform: uppercase;*/
+/*    font-weight: bold;*/
+/*}*/
+
+/*.navbar-logo {*/
+/*    width: 50px;*/
+/*}*/
+
+/*.caixa {*/
+/*    background-color: #CECECE;*/
+/*    height: 50px;*/
+/*    width: 180px;*/
+/*    text-align: center;*/
+/*    color: #000;*/
+/*    font-size: 14px;*/
+/*    font-weight: bold;*/
+/*    text-transform: uppercase;*/
+/*    vertical-align: middle;*/
+/*    border: 1px solid #000;*/
+/*    line-height: 50px;*/
+/*}*/
+/*#quantidade span{*/
+/*    font-size: 20px;*/
+/*}*/
+/*.caixa3 {*/
+/*    vertical-align: top;*/
+/*    font-size: 12px;*/
+/*    line-height: 22px;*/
+/*}*/
+
+/*.caixablack{*/
+/*    background-color: #545454;*/
+/*    color: #FFFFFF;*/
+
+/*}*/
+
+/*.caixablack div{*/
+/*    width: 50px !important;*/
+/*}*/
+
+/*.caixablack p{*/
+/*    color: #FFFFFF;*/
+/*}*/
+/*.vendadupla p{*/
+/*    background-color: #AAAAAA;*/
+/*}*/
+
+/*.imagem {*/
+/*    height: 282px;*/
+/*    border: 1px solid #000;*/
+/*    background-color: #CECECE;*/
+/*    width: 460px;*/
+/*}*/
+
+/*.bloco {*/
+/*    float: right;*/
+/*}*/
+
+/*.row::after {*/
+/*    content: "";*/
+/*    clear: both;*/
+/*    display: table;*/
+/*}*/
+
+/*.columnTotalDesc {*/
+/*    float: left;*/
+/*    width: 54%;*/
+/*    margin-left: 5px;*/
+/*}*/
+
+/*.columnTotalDesc p {*/
+/*    height: 50px;*/
+/*    background-color: #CECECE;*/
+/*    text-align: center;*/
+/*    color: #000;*/
+/*    font-size: 14px;*/
+/*    font-weight: bold;*/
+/*    text-transform: uppercase;*/
+/*    vertical-align: middle;*/
+/*    border: 1px solid #000;*/
+/*    line-height: 40px;*/
+/*}*/
+
+/*.column {*/
+/*    float: right;*/
+/*    margin-right: 5px;*/
+/*}*/
+
+/*.column p {*/
+/*    height: 50px;*/
+/*    background-color: #CECECE;*/
+/*    text-align: center;*/
+/*    color: #000;*/
+/*    font-size: 25px;*/
+/*    font-weight: bold;*/
+/*    text-transform: uppercase;*/
+/*    vertical-align: middle;*/
+/*    border: 1px solid #000;*/
+/*    line-height: 50px;*/
+/*    width: 367px;*/
+/*}*/
+
+/*.divVenda{*/
+/*    width: 380px;*/
+/*    margin-right: -10px;*/
+/*}*/
+/*.divVenda p{*/
+/*    width: 380px;*/
+/*}*/
+
+/*.product-list {*/
+/*    list-style-type: none;*/
+/*    padding: 1px;*/
+/*    margin: 0;*/
+/*    top: 100%; !* Posiciona o menu abaixo do input *!*/
+/*    left: 0;*/
+/*    width: 100%; !* Faz o menu ter a mesma largura do input *!*/
+/*    background-color: #fff; !* Cor de fundo do menu *!*/
+/*    border: 1px solid #ccc; !* Adicione uma borda ao menu se desejar *!*/
+/*    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); !* Adicione uma sombra ao menu se desejar *!*/
+/*    z-index: 999; !* Certifique-se de que o menu está acima de outros elementos *!*/
+/*    max-height: 200px; !* Define uma altura máxima para o menu para torná-lo rolável se houver muitos itens *!*/
+/*    overflow-y: auto; !* Torna o menu rolável se necessário *!*/
+/*    scrollbar-width: thin;*/
+/*    scrollbar-color: #ccc #f0f0f0;*/
+/*}*/
+
+/*.product-list li {*/
+/*    margin: 5px 0;*/
+/*    font-size: 16px;*/
+/*}*/
+
+/*.product-list a {*/
+/*    text-decoration: none;*/
+/*    color: #333;*/
+/*    display: block;*/
+/*    padding: 5px;*/
+/*    border: 1px solid #ccc;*/
+/*    border-radius: 5px;*/
+/*}*/
+
+/*.product-list a:hover {*/
+/*    background-color: #f0f0f0;*/
+/*}*/
+
+/*.selected {*/
+/*    background-color: #f0f0f0;*/
+/*}*/
+/*.custom-disabled{*/
+/*    font-size: 18px;*/
+/*    font-weight: bold;*/
+/*    text-transform: uppercase;*/
+/*    color: #000000;*/
+/*    background-color: #f0f0f0;*/
+/*}*/
+/*.custom-imagem {*/
+/*    display: flex;*/
+/*    align-items: center;*/
+/*    justify-content: center;*/
+/*    overflow: hidden;*/
+/*    max-height: 100%;*/
+/*}*/
+
+/*.custom-imagem img {*/
+/*    max-width: 100%;*/
+/*    max-height: 100%;*/
+/*    width: auto;*/
+/*}*/
+/*.mbmobile{*/
+/*    width: 5px;*/
+/*    height: 15px;*/
+/*}*/
+/*.cssInput{*/
+/*    font-size: 25px;*/
+/*    text-align: center;*/
+/*    height: 50px;*/
+/*    font-weight: bold;*/
+/*}*/
+
+

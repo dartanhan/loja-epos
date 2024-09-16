@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 
-use App\Models\LojaProdutos;
+use App\Models\ProdutoVariacao;
 use App\Models\LojaVenda;
 use App\Models\VendaProdutos;
 use Illuminate\Http\JsonResponse;
@@ -87,11 +87,11 @@ class ProdutoController extends Controller
     {
         try {
 
-            $products = LojaProdutos::where('codigo_produto', $id)->first();
+            $products = ProdutoVariacao::where('codigo_produto', $id)->first();
 
             if(!$products) {
                 $products['success'] = false;
-                $products['message'] = "Produto não localizado!";
+                $products['message'] = "ProdutoVariacao não localizado!";
                 return Response::json($products);
             }
         } catch (\Exception $e) {
