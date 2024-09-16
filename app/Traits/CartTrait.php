@@ -794,8 +794,9 @@ trait CartTrait {
         try {
            // $connector = new NetworkPrintConnector("192.168.0.200", 9100);
             //$connector = new WindowsPrintConnector("smb://computer/printer");
-           // $connector = new WindowsPrintConnector("smb://DESKTOP-KOC02LS/L4260Series");
-            $connector = new WindowsPrintConnector("EPSON TM-T20 Receipt");
+            //$connector = new WindowsPrintConnector("smb://DESKTOP-KOC02LS/L4260Series");
+            //$connector = new WindowsPrintConnector("EPSON TM-T20 Receipt");
+            $connector = new WindowsPrintConnector("smb://DESKTOP-KV6GLE9/EPSON TM-T20 Receipt");
 
 
             /* Print a "Hello world" receipt" */
