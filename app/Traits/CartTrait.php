@@ -19,6 +19,8 @@ use App\Http\Models\VendasProdutosTipoPagamento;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Mike42\Escpos\CapabilityProfile;
+use Mike42\Escpos\PrintConnectors\CupsPrintConnector;
 use Mike42\Escpos\PrintConnectors\NetworkPrintConnector;
 use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
 use Mike42\Escpos\Printer;
@@ -320,7 +322,7 @@ trait CartTrait {
     {
         $this->cartItems =  Carts::with(['variations.produtos','clientes','cashback'])
             ->where('user_id',  $this->userId  )
-            ->whereIn('status',  ['ABERTO' ,'TROCA'])
+            ->whereIn('status',  ['ABERTO'])
             ->orderBy('id','desc')
             ->get();
 
@@ -419,9 +421,9 @@ trait CartTrait {
             $this->emit("message", "Venda salva com sucesso!. ", IconConstants::ICON_SUCCESS, IconConstants::COLOR_GREEN, true);
 
         }elseif ($data['status'] == StatusVenda::TROCA){
-         dd();
+         dd($data);
         }else{
-
+            dd("teste");
             $clienteId = null;
             $productsData = [];
             $productVariations =[];
@@ -788,8 +790,13 @@ trait CartTrait {
      * @param $body
      */
     private function printer($body){
+
         try {
-            $connector = new NetworkPrintConnector("192.168.0.200", 9100);
+           // $connector = new NetworkPrintConnector("192.168.0.200", 9100);
+            //$connector = new WindowsPrintConnector("smb://computer/printer");
+           // $connector = new WindowsPrintConnector("smb://DESKTOP-KOC02LS/L4260Series");
+            $connector = new WindowsPrintConnector("EPSON TM-T20 Receipt");
+
 
             /* Print a "Hello world" receipt" */
             $printer = new Printer($connector);
@@ -799,6 +806,11 @@ trait CartTrait {
             $printer -> setLineSpacing(10);
             $printer -> setJustification(0);
             $printer -> selectCharacterTable(3);
+
+            // Converter para UTF-8, se necessário
+            if (mb_detect_encoding($body, 'UTF-8', true) === false) {
+                $body = mb_convert_encoding($body, 'UTF-8');
+            }
 
             $printer -> text($body);
             $printer ->feed(2);

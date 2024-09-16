@@ -60,12 +60,13 @@ class SearchTroca extends Component
                 $this->emit('focusInputSearch','codeSale');
             }else{
                 //fecha o modal caso ache a venda
-                $this->emit('closeModal','openModalBarterSale');
+               // $this->emit('closeModal','openModalBarterSale');
 
                 //dd($sales->id);
-                $carts = Carts::where('venda_id',$sales->id)->update(['status' => StatusVenda::TROCA,'user_id' => $this->userId]);
-                if($carts){
-                    $this->emit("message", "Venda localizada com sucesso!", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN,true,false);
+               // $carts = Carts::where('venda_id',$sales->id)->update(['status' => StatusVenda::TROCA,'user_id' => $this->userId]);
+                if($sales){
+                    $this->cartItems = $sales;
+                    $this->emit("message", "Venda localizada com sucesso!", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN,false,false);
                 }
             }
         } catch (ValidationException $e) {

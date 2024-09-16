@@ -74,7 +74,7 @@
                     </button>
                 </span>
 
-                <span class="d-inline" data-toggle="tooltip" title="{{ !empty($cartItems) && isset($cartItems[0]) && $cartItems[0]->status == \App\Enums\StatusVenda::TROCA || $totalItens > 0 ? 'Existe uma troca ou venda em andamento no carrinho!' : 'Efetuar Troca' }}">
+                <span wire:ignore class="d-inline" data-toggle="tooltip" title="{{ !empty($cartItems) && isset($cartItems[0]) && $cartItems[0]->status == \App\Enums\StatusVenda::TROCA || $totalItens > 0 ? 'Existe uma troca ou venda em andamento no carrinho!' : 'Efetuar Troca' }}">
                     <button type="button" class="btn btn-info btn-sm" onclick="swapSale()" {{ !empty($cartItems) && isset($cartItems[0]) && $cartItems[0]->status == \App\Enums\StatusVenda::TROCA || $totalItens > 0 ? "style=cursor:no-drop; disabled" : " style=cursor:pointer" }}>
                         <svg xmlns="http://www.w3.org/2000/svg"  width="16" height="16" viewBox="0 0 576 512">
                             <!--!Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
@@ -92,7 +92,7 @@
 
     <!-- Modal barerSale-->
     <div class="modal fade top" id="openModalSwapSale" tabindex="-1" aria-labelledby="openModalSwapSaleLabel" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title" id="openModalSwapSaleLabel">Troca</h5>

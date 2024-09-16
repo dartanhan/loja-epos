@@ -5,12 +5,7 @@
                 <table class="table table-hover table-striped text-center table-responsive" style="padding: 2px">
                     <thead class="table-dark">
                     <tr>
-                        @if($cartItems[0]->status == \App\Enums\StatusVenda::TROCA)
-                            <th class="" style="width: 150px">TROCA</th>
-                            <th class="" style="width: 550px">DESCRIÇÃO</th>
-                        @else
-                            <th class="" style="width: 650px" colspan="2">DESCRIÇÃO</th>
-                        @endif
+                        <th class="" style="width: 650px" colspan="2">DESCRIÇÃO</th>
                         <th class="" style="width: 50px;">DESCONTO</th>
                         <th class="" style="width: 120px">VALOR</th>
                         <th class="" style="width: 90px">QTD</th>
@@ -22,19 +17,12 @@
 
                         <tr id="{{$item->id}}" >
                             <td class="text-center">
-                                @if($item->status !== \App\Enums\StatusVenda::TROCA)
                                     <button wire:click="removeFromCart({{ $item->id }})"
                                             data-toggle="tooltip" data-placement="top" title="Remover Produto"
                                             class="border-0"  style="cursor: pointer" wire:ignore>
                                         <i class="fas fa-trash-alt text-danger"></i>
                                     </button>
-                                @else
-                                    <div>
-                                        @livewire('tipo-troca', key(time()))
-                                    </div>
-                                @endif
                             </td>
-
                             <td class="text-left">
                                 @if(!empty($item->imagem))
                                     <span class="cart-product-img"

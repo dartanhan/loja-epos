@@ -32,9 +32,10 @@
         <div class="alert alert-success mt-3 text-center">{{ session('message') }}</div>
     @endif
 
-    <div id="validation-errors" class="alert alert-danger mt-2" style="display: none;">
-        <ul id="validation-errors-list"></ul>
-    </div>
-
-
+{{--    <div id="validation-errors" class="alert alert-danger mt-2" style="display: none;">--}}
+{{--        <ul id="validation-errors-list"></ul>--}}
+{{--    </div>--}}
+    @if($cartItems)
+        {{$cartItems}}
+    @endif
 </div>
