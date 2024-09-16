@@ -19,6 +19,7 @@ use App\Http\Models\VendasProdutosTipoPagamento;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Mike42\Escpos\CapabilityProfile;
 use Mike42\Escpos\PrintConnectors\CupsPrintConnector;
 use Mike42\Escpos\PrintConnectors\NetworkPrintConnector;
@@ -754,7 +755,7 @@ trait CartTrait {
            // dd($cupom);
 
               $this->printer($cupom);
-              $this->emit("message", "Re-Impressão da Venda realizada com sucesso! ", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN,false);
+
         } catch (\Exception $e) {
             $this->emit("global-error", " Falha na reimpressão da venda. ". $e->getMessage());
         }
@@ -790,17 +791,18 @@ trait CartTrait {
      * @param $body
      */
     private function printer($body){
-
+//ZaYCUo7QylhqzYq79D1cEkdQB6PEwZjmx_rjW9JizR8 - Key PRINTNODE
         try {
            // $connector = new NetworkPrintConnector("192.168.0.200", 9100);
             //$connector = new WindowsPrintConnector("smb://computer/printer");
-            //$connector = new WindowsPrintConnector("smb://DESKTOP-KOC02LS/L4260Series");
+           // $connector = new WindowsPrintConnector("smb://DESKTOP-KOC02LS/L4260Series");
+            //$connector = new WindowsPrintConnector("L4260Series");
             //$connector = new WindowsPrintConnector("EPSON TM-T20 Receipt");
-            $connector = new WindowsPrintConnector("smb://DESKTOP-KV6GLE9/EPSON TM-T20 Receipt");
+            //$connector = new WindowsPrintConnector("smb://DESKTOP-KV6GLE9/EPSON TM-T20 Receipt");
 
 
             /* Print a "Hello world" receipt" */
-            $printer = new Printer($connector);
+           /* $printer = new Printer();
 
             $printer -> initialize();
             $printer -> setFont(1);
@@ -815,10 +817,39 @@ trait CartTrait {
 
             $printer -> text($body);
             $printer ->feed(2);
-            $printer -> cut();
+            $printer -> cut();*/
 
             /* Close printer */
-            $printer -> close();
+            //$printer -> close();
+
+            // Gerar comandos ESC/POS
+            // Configuração da impressora
+            $connector = new NetworkPrintConnector('192.168.0.200', 9100);
+            $printer = new Printer($connector);
+
+
+            // Capturar os comandos ESC/POS gerados como buffer
+            ob_start();
+            $this->createEscposCommandsMike($printer,$body);
+            $commands = ob_get_clean();
+
+            // Fechar a impressora
+            $printer->close();
+
+            // Enviar os comandos para o serviço Node.js
+            $response = Http::withHeaders([
+                'Content-Type' => 'application/octet-stream',
+            ])->send('POST', 'http://localhost:3000/print', [
+                'body' => $commands, // Enviar os comandos como corpo da solicitação
+            ]);
+
+            $responseData = json_decode($response, true); // Decodifica a resposta JSON
+            if ($response->successful()) {
+                $this->emit("message", $responseData['message'] , IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN,false);
+            } else {
+              //  return response()->json(['message' => 'Falha ao solicitar impressão.'], $response->status());
+                $this->emit("message", $responseData['message']  ." - " . $response->status(), IconConstants::ICON_ERROR,IconConstants::COLOR_RED,false);
+            }
 
         } catch (\Exception $e) {
             // echo "Couldn't print to this printer: " . $e -> getMessage() . "\n";
@@ -826,6 +857,42 @@ trait CartTrait {
 
         }
     }
+// Gerar comandos ESC/POS
+    function createEscposCommandsMike($printer,$body) {
+//        $printer->initialize();
+//        $printer->setJustification(Printer::JUSTIFY_CENTER);
+//        $printer->text("Impressão de teste\n");
+//        $printer->feed();
+//        $printer->cut();
+
+
+        $printer -> initialize();
+        $printer -> setFont(1);
+        $printer -> setLineSpacing(10);
+        $printer -> setJustification(0);
+        $printer -> selectCharacterTable(3);
+        $printer -> text($body);
+        $printer ->feed(2);
+        $printer -> cut();
+    }
+
+//    // Função para criar comandos ESC/POS
+//    function createEscposCommands() {
+//        $texto = "Impressão de teste";
+//        $ESC = "\x1b";
+//        $GS = "\x1d";
+//
+//        // Comandos ESC/POS
+//        $comando =  $ESC . "@"; // Inicializa a impressora
+//        $comando .= $ESC . "M" . chr(1); // Define a fonte
+//        $comando .= $ESC . "3" . chr(10); // Define o espaçamento entre linhas
+//        $comando .= $ESC . $GS . "t" . chr(3);//selectCharacterTable
+//        $comando .= $ESC . "d" . chr(2); // Avança a linha
+//        $comando .= $GS . "V" . chr(65); // Corta o papel
+//        $comando .= $texto;
+//
+//        return $comando;
+//    }
 
     /***
      * Função para akustar os espaços nos itens da venda para impressão
