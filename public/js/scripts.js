@@ -33,6 +33,7 @@ $(document).ready(function() {
         minLength: 3,
         source: function(request, response) {
             if(request.term.trim()){
+                console.log(fncUrl()+'/search');
                 $.get(fncUrl()+'/search', { term: request.term }, function(data) {
                     // console.log(data);
                     // Mapeie os dados para o formato que o autocomplete espera
