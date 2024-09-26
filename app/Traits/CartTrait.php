@@ -86,9 +86,11 @@ trait CartTrait {
         $this->loadCartItemsTrait();
 
         $this->emit("message", "Item adicionado com sucesso!", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN);
-        $this->emitTo('incluir-cart','cartUpdated');
-        $this->emitTo('total-sale','totalSaleVendaUpdated','', $this->hasCashback);
-        $this->emitTo('incluir-totais','totaisUpdated');
+        //$this->emitTo('incluir-cart','cartUpdated');
+        //$this->emitTo('total-sale','totalSaleVendaUpdated','', $this->hasCashback);
+        //$this->emitTo('incluir-totais','totaisUpdated');
+        $this->emitTo('cart-componente','atualizarCarrinho');
+
         $this->barcode = "";
     }
 
@@ -323,7 +325,7 @@ trait CartTrait {
     {
         $this->cartItems =  Carts::with(['variations.produtos','clientes','cashback'])
             ->where('user_id',  $this->userId  )
-            ->whereIn('status',  ['ABERTO'])
+            ->whereIn('status',  ['ABERTO','TROCA'])
             ->orderBy('id','desc')
             ->get();
 
@@ -791,18 +793,18 @@ trait CartTrait {
      * @param $body
      */
     private function printer($body){
-//ZaYCUo7QylhqzYq79D1cEkdQB6PEwZjmx_rjW9JizR8 - Key PRINTNODE
+
         try {
-           // $connector = new NetworkPrintConnector("192.168.0.200", 9100);
+            //$connector = new NetworkPrintConnector("192.168.0.200", 9100);
             //$connector = new WindowsPrintConnector("smb://computer/printer");
            // $connector = new WindowsPrintConnector("smb://DESKTOP-KOC02LS/L4260Series");
             //$connector = new WindowsPrintConnector("L4260Series");
-            //$connector = new WindowsPrintConnector("EPSON TM-T20 Receipt");
+            $connector = new WindowsPrintConnector("EPSON TM-T20 Receipt");
             //$connector = new WindowsPrintConnector("smb://DESKTOP-KV6GLE9/EPSON TM-T20 Receipt");
 
 
             /* Print a "Hello world" receipt" */
-           /* $printer = new Printer();
+            $printer = new Printer($connector);
 
             $printer -> initialize();
             $printer -> setFont(1);
@@ -817,39 +819,12 @@ trait CartTrait {
 
             $printer -> text($body);
             $printer ->feed(2);
-            $printer -> cut();*/
+            $printer -> cut();
 
             /* Close printer */
-            //$printer -> close();
+            $printer -> close();
+            $this->emit("message", "Impressão realizada com sucesso!" , IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN,false);
 
-            // Gerar comandos ESC/POS
-            // Configuração da impressora
-            $connector = new NetworkPrintConnector('192.168.0.200', 9100);
-            $printer = new Printer($connector);
-
-
-            // Capturar os comandos ESC/POS gerados como buffer
-            ob_start();
-            $this->createEscposCommandsMike($printer,$body);
-            $commands = ob_get_clean();
-
-            // Fechar a impressora
-            $printer->close();
-
-            // Enviar os comandos para o serviço Node.js
-            $response = Http::withHeaders([
-                'Content-Type' => 'application/octet-stream',
-            ])->send('POST', 'http://localhost:3000/print', [
-                'body' => $commands, // Enviar os comandos como corpo da solicitação
-            ]);
-
-            $responseData = json_decode($response, true); // Decodifica a resposta JSON
-            if ($response->successful()) {
-                $this->emit("message", $responseData['message'] , IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN,false);
-            } else {
-              //  return response()->json(['message' => 'Falha ao solicitar impressão.'], $response->status());
-                $this->emit("message", $responseData['message']  ." - " . $response->status(), IconConstants::ICON_ERROR,IconConstants::COLOR_RED,false);
-            }
 
         } catch (\Exception $e) {
             // echo "Couldn't print to this printer: " . $e -> getMessage() . "\n";

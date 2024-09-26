@@ -2,7 +2,7 @@
     <div class="card d-flex" wire:ignore>
         <div class="input-group">
             <input type="text" wire:model.defer="codeSale"  name="codeSale" id="codeSale" wire:ignore
-                   placeholder="Digite o código da Venda KNXXXX" maxlength="11"
+                   placeholder="Código da Venda KNXXXX" maxlength="11"
                    wire:keydown.enter="searchTroca"
                    class="form-control form-control-sm" style="padding: 0px 0px 0px 5px" autofocus>
             <div class="input-group-append">

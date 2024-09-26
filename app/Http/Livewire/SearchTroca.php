@@ -22,6 +22,7 @@ class SearchTroca extends Component
     public $cartItems;
     public $userId;
     public $codeSale; // Declare a propriedade aqui
+    public $venda;
 
     protected $listeners = [
         'resetInputFields'  =>  'resetInputFields'
@@ -62,11 +63,12 @@ class SearchTroca extends Component
                 //fecha o modal caso ache a venda
                // $this->emit('closeModal','openModalBarterSale');
 
-                //dd($sales->id);
-               // $carts = Carts::where('venda_id',$sales->id)->update(['status' => StatusVenda::TROCA,'user_id' => $this->userId]);
-                if($sales){
-                    $this->cartItems = $sales;
+              // dd($sales->id);
+                $carts = Carts::where('venda_id',$sales->id)->update(['status' => StatusVenda::TROCA,'user_id' => $this->userId]);
+                if($carts){
+                    $this->emitTo('cart-component','atualizarCarrinho');
                     $this->emit("message", "Venda localizada com sucesso!", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN,false,false);
+                    $this->emit('closeModal','openModalSwapSale');
                 }
             }
         } catch (ValidationException $e) {

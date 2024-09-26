@@ -1,7 +1,7 @@
 <div xmlns:wire="http://www.w3.org/1999/xhtml">
-    <div class="card d-flex" wire:ignore>
+    <div class="card d-flex">
                 <div class="input-group">
-                    <input type="text" wire:model.defer="codeSale" name="codeSale" id="codeSale"
+                    <input type="text" wire:model.defer="codeSalePrint" name="codeSalePrint" id="codeSalePrint" wire:ignore
                            placeholder="Digite o Código da Venda" maxlength="10"
                            class="form-control form-control-sm"
                            style="padding: 0px 0px 0px 5px" autofocus>

@@ -114,20 +114,7 @@ $(document).ready(function() {
         })();
     }
 
-    /***
-     * Modal para imprimir uma venda
-     */
-    function openModalPrintSale(){
-        console.log('openModalPrintSale');
 
-        $('#openModalPrintSale').modal({
-            // backdrop: 'static',  // Disables closing the modal by clicking outside of it
-            keyboard: false      // Disables closing the modal with the ESC key
-        }).modal('show');
-
-       //focusInputCodeSale();
-        focusInputSearch('codeSale');
-    }
 
     /**
      * Focus no campo search-sale.blade.php
@@ -330,6 +317,26 @@ function finalizeSale(codigo_venda,status) {
         }
     });
 
+    /**
+     * Ao clicar na linha do produto, o checkbox será marcado ou desmarcado conforme necessário.
+     * Ao clicar na linha, o checkbox será alternado e a cor da linha será alterada de acordo com o estado do checkbox.
+     * */
+    $('#table-venda tbody').on('click', 'tr', function () {
+        const $checkbox = $(this).find('input[type="checkbox"]');
+        // Verifica se o status da linha é 'troca'
+        const status = $(this).data('status'); // Certifique-se de definir o data-status na tr
+
+        if (status.toUpperCase() === 'TROCA') {
+            if ($checkbox.prop('checked')) {
+                $checkbox.prop('checked', false);
+                $(this).find('td').removeClass('highlighted'); // Remover a classe de todas as células
+            } else {
+                $checkbox.prop('checked', true);
+                $(this).find('td').addClass('highlighted'); // Adicionar a classe a todas as células
+            }
+        }
+    });
+
 /**
  * Notificações disparadas pelo liveware
  * */
@@ -377,6 +384,7 @@ document.addEventListener('DOMContentLoaded', function() {
         //focusInputCodeSale();
         $('#'+modal).modal('hide');
     });
+
 
     /***
      * Exibe ou não o DIV de Forma de Entrega
@@ -427,7 +435,7 @@ document.addEventListener('DOMContentLoaded', function() {
             let confirmado = await ConfirmaAll('Você deseja realmente remover o cliente da venda?',
                 'Tem certeza?','warning','Cancelar','#d33',
                 'Sim, remover!','#3085d6');
-            console.log('Confirmado:', confirmado);
+           // console.log('Confirmado:', confirmado);
             if(confirmado){
                 let data = {
                     user_id :  $(this).data('user-id'),
@@ -474,8 +482,7 @@ function activateTooltipsAndFormatting() {
  * Chama no hook do livewiere para recarregar as propriedades do DOM após reload do Livewire
  * */
 function bindChosenSelect(param){
-    //$('.chosen-tipo-venda').chosen();
-    console.log(param);
+    //console.log(param);
     $('.'+param).chosen();
 }
 /**
@@ -585,7 +592,7 @@ function btnFinalizarVenda(acao,value){
         });
 
         /***
-         * MODAL CORTINA
+         * MODAL CORTINA BUSCA CLIENTE
          * **/
         $('#openModalBtn').on('click', function () {
 
@@ -594,7 +601,7 @@ function btnFinalizarVenda(acao,value){
                 keyboard: false      // Disables closing the modal with the ESC key
             }).modal('show');
 
-            //Adicona ao focus ao input, após abrir a modal
+            //Adicona ao focus ao input, após abrir a modalwagner
             const searchClient = document.getElementById('searchClient');
             setTimeout(() => {
                 searchClient.focus();
@@ -630,6 +637,9 @@ function btnFinalizarVenda(acao,value){
             Livewire.emit('resetInputFields');
         });
 
+        /**
+         * Ao abrir modal de fechar venda
+         * */
         $('#openModalBtnFecharVenda').on('click', function () {
             $('#slideInModalFecharVenda').modal({
                 backdrop: 'static',  // Disables closing the modal by clicking outside of it
@@ -638,14 +648,26 @@ function btnFinalizarVenda(acao,value){
             window.livewire.emitTo('sale','loadSales'); //atualiza os dados do modal
 
             setTimeout(() => {
-                //allPaymentMethods = getAllPaymentMethods();
-                $('.chosen-tipo-venda').chosen();
                 $('.chosen-select').chosen(
                     {
                         max_selected_options: 2,
                         width: "100%"
                     });
             }, 1000);
+        });
+
+
+        /***
+         * Modal para imprimir uma venda
+         */
+        $('#openModalPrintSale').on('click', function () {
+            //console.log('openModalPrintSale');
+
+            $('#slideModalPrintSale').modal({
+                // backdrop: 'static',  // Disables closing the modal by clicking outside of it
+                keyboard: false      // Disables closing the modal with the ESC key
+            }).modal('show');
+            focusInputSearch('codeSalePrint');
         });
 
         $('#openMenu').on('click', function () {
@@ -759,7 +781,6 @@ function btnFinalizarVenda(acao,value){
 
         // Atribui o evento na carga inicial
         bindChosenFormaPagamento();
-        bindChosenSelect('chosen-tipo-venda');
 
         // Reatribui o evento sempre que o Livewire atualizar o componente
         Livewire.hook('message.processed', (message, component) => {
@@ -773,7 +794,7 @@ function btnFinalizarVenda(acao,value){
      * Coloca o focus no campo de onde recebe por parâmetro o nome do campo
      * */
     function focusInputSearch(focusInput ) {
-         console.log("focusInputSearch", focusInput);
+        // console.log("focusInputSearch", focusInput);
         //Adicona ao focus ao input, após abrir a modal
         const focus = document.getElementById(focusInput);
         setTimeout(() => {
