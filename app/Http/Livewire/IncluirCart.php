@@ -17,6 +17,7 @@ class IncluirCart extends Component
     public $cashback=0;
     public $hasCashback = false;  // Estado inicial do switch
 
+
     protected $listeners = ['cartUpdated' => 'handleCartUpdated'];
 
     public function mount()

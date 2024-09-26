@@ -15,7 +15,7 @@ class SearchSale extends Component
     use CartTrait;
     public $searchSale;
     public $reprintSale;
-    public $codeSale;
+    public $codeSalePrint;
     public $nome;
     public $sale;
     public $cpf;
@@ -28,12 +28,12 @@ class SearchSale extends Component
     ];
 
     protected $rules = [
-        'codeSale' => 'required|string|between:5,10'
+        'codeSalePrint' => 'required|string|between:5,10'
     ];
 
     protected $messages = [
-        'codeSale.required' => 'O campo código venda é obrigatório.',
-        'codeSale.between' => 'O campo código venda não pode ter mais que 10 caracteres.'
+        'codeSalePrint.required' => 'O campo código venda é obrigatório.',
+        'codeSalePrint.between' => 'O campo código venda não pode ter mais que 10 caracteres.'
     ];
 
     public function mount()
@@ -48,13 +48,13 @@ class SearchSale extends Component
     {
         try {
             $this->sale = null;
-            $data = $this->validate($this->rules);
+            $validate = $this->validate($this->rules);
 
-            $this->codeSale = $data['codeSale'];
+            $this->codeSalePrint = $validate['codeSalePrint'];
             /**
              * Busca a venda e suas relações
             */
-            $this->sale = Vendas::with('products', 'cliente','forma_pgto.payments','desconto','cashback','frete')->where('codigo_venda', $this->codeSale)->first();
+            $this->sale = Vendas::with('products', 'cliente','forma_pgto.payments','desconto','cashback','frete')->where('codigo_venda', $this->codeSalePrint)->first();
 
             if ($this->sale && !empty($this->sale)) {
                 $formatter = new NumberFormatter('pt_BR', \NumberFormatter::CURRENCY);
@@ -79,13 +79,13 @@ class SearchSale extends Component
                     $this->telefone = $this->getMaskedPhone($this->sale->cliente[0]->telefone);
                 }
             }else{
-                session()->flash('notfound', "Atenção! Venda código {$this->codeSale}, não localizada!");
-                $this->emit('focusInputSearch','codeSale');
+                session()->flash('notfound', "Atenção! Venda código {$this->codeSalePrint}, não localizada!");
+                $this->emit('focusInputSearch','codeSalePrint');
             }
 
         } catch (ValidationException $e) {
-            session()->flash('error',$e->validator->errors()->first('codeSale'));
-            $this->emit('focusInputSearch','codeSale');
+            session()->flash('error',$e->validator->errors()->first('codeSalePrint'));
+            $this->emit('focusInputSearch','codeSalePrint');
 
         } catch (Exception $e) {
             session()->flash('error',$e->getMessage());
@@ -97,7 +97,11 @@ class SearchSale extends Component
     */
     public function reprintSale(){
         $this->reprintSaleTrait($this->sale);
+        $this->codeSalePrint = "";
+        $this->sale  =null;
+        $this->emit('closeModal','slideModalPrintSale');
     }
+
 
     public function render()
     {
