@@ -877,19 +877,23 @@ trait CartTrait {
 //		return $COMMAND;
 //	}
 
-	/**
+    /**
      * Retorna a url da imagem
-	*/
+     * @param $item
+     * @return string
+     */
     public function getImageUrl($item)
     {
         //$url = 'http://127.0.0.1/'.env('URL_IMAGE');
         // Obter o protocolo (HTTP ou HTTPS)
-        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+       //$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
 
         // Obter o nome do host (domínio)
-        $host = $_SERVER['HTTP_HOST'];
+        $url = config('app.url_image');//$_SERVER['HTTP_HOST'];
 
-        $url = $protocol.'/'. $host.'/'. config('app.url_image');
+        //$url =  $host.'/'. config('app.url_image');
+
+        //$url = $protocol.'/'. $host.'/'. config('app.url_image');
 
         if($item->imagem){
             return $url.'/public/storage/'.$item->imagem;
