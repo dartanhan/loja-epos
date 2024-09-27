@@ -426,7 +426,7 @@ trait CartTrait {
         }elseif ($data['status'] == StatusVenda::TROCA){
          dd($data);
         }else{
-            dd("teste");
+            //dd("teste");
             $clienteId = null;
             $productsData = [];
             $productVariations =[];
@@ -585,8 +585,8 @@ trait CartTrait {
                 // Confirmar a transação
                 DB::commit();
 
-                $this->printSale($data);
-                $this->emit("message", "Venda realizada com sucesso. ", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN,true);
+                $this->printSale($data,"Venda realizada com sucesso. ");
+               // $this->emit("message", "Venda realizada com sucesso. ", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN,true);
 
             } catch (\Exception $e) {
                 // Reverter a transação em caso de erro
@@ -601,9 +601,13 @@ trait CartTrait {
     /**
      * Formata a saida do cupom para imprimir a venda
      * @param $data
+     * @param $msg
      */
-    public function printSale($data){
+    public function printSale($data,$msg){
         //dd($data, $this->cartItems, $this->clienteName);
+
+        $conteudoCupom = '';
+        $forma_nome ='';
 
         try {
 
@@ -613,7 +617,6 @@ trait CartTrait {
 
             $formatter = new \NumberFormatter('pt_BR',  \NumberFormatter::CURRENCY);
 
-            $conteudoCupom = '';
             foreach ($this->cartItems as $item){
                 $conteudoCupom .= $this->formataEspacos($item->name,36,'D');
                 $conteudoCupom .= $formatter->formatCurrency($item->price, 'BRL') . '      ';
@@ -624,12 +627,11 @@ trait CartTrait {
             /**
              * Forma de pagamento da venda
              */
-            $forma_nome ='';
+
             foreach ($data['paymentTypes'] as $forma){
                 $forma_nome .= $this->formataEspacos($forma['nome'],50,'D') . '    ' . $formatter->formatCurrency($forma['valor_pgto'], 'BRL') ."\n\r";
             }
 
-            $cupom = '';
             $cupom =  "                       " .$enterprise->razao . "\n\r"
                 . "      " . $enterprise->endereco . " - " . $enterprise->local . "\n\r"
                 . "      Data: " . Carbon::now()->format("d/m/Y H:i:s") . " Tel: " . $enterprise->telefone . "\n\r"
@@ -659,8 +661,8 @@ trait CartTrait {
 
                 $cupom .= $this->footerCupon($vendedor.auth()->user()->nome, $data['codigo_venda'],$this->clienteName);
 
-            $this->printer($cupom);
-            $this->emit("message", "Impressão da Venda realizada com sucesso! ", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN,false);
+            $this->printer($cupom,$msg,true);
+            //$this->emit("message", "Impressão da Venda realizada com sucesso! ", IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN,false);
 
         } catch (\Exception $e) {
               $this->emit("global-error", " Falha na impressão da venda. ". $e->getMessage());
@@ -674,6 +676,10 @@ trait CartTrait {
      */
     public function reprintSaleTrait($sale){
         //dd($sale);
+        $conteudoCupom = '';
+        $subTotal = 0;
+        $cliente = '';
+        $forma_nome ='';
 
         try {
             $formatter = new \NumberFormatter('pt_BR',  \NumberFormatter::CURRENCY);
@@ -685,7 +691,7 @@ trait CartTrait {
             /**
              * Forma de pagamento da venda
             */
-            $forma_nome ='';
+
             foreach ($sale->forma_pgto as $forma){
                 $forma_nome .= $this->formataEspacos($forma->payments->nome,50,'D') . '    ' . $formatter->formatCurrency($forma->valor_pgto, 'BRL') ."\n\r";
             }
@@ -699,14 +705,11 @@ trait CartTrait {
             /**
              * pega o cliente da venda
              */
-            $cliente = '';
+
             if ($this->sale && isset($this->sale->cliente) && count($this->sale->cliente) > 0) {
                 $cliente = $this->sale->cliente[0]->nome;
             }
 
-
-            $conteudoCupom = '';
-            $subTotal = 0;
             foreach ($sale->products as $item){
                 $conteudoCupom .= $this->formataEspacos($item->descricao,37,'D');
                 $conteudoCupom .= $this->formataEspacos($formatter->formatCurrency($item->valor_produto, 'BRL') ,9,'D'). '      ';
@@ -724,7 +727,6 @@ trait CartTrait {
             $total = $subTotal - $desconto - $cashback;
             $total_pagar = $total + $frete;
 
-            $cupom = '';
             $cupom =  "                       " .$enterprise->razao . "\n\r"
                 . "      " . $enterprise->endereco . " - " . $enterprise->local . "\n\r"
                 . "      Data: " . Carbon::now()->format("d/m/Y H:i:s") . " Tel: " . $enterprise->telefone . "\n\r"
@@ -756,7 +758,7 @@ trait CartTrait {
 
            // dd($cupom);
 
-              $this->printer($cupom);
+              $this->printer($cupom,"Reimpressão realizada com sucesso!",false);
 
         } catch (\Exception $e) {
             $this->emit("global-error", " Falha na reimpressão da venda. ". $e->getMessage());
@@ -791,8 +793,10 @@ trait CartTrait {
     /**
      * Imprime a venda
      * @param $body
+     * @param $msg
+     * @param $reload
      */
-    private function printer($body){
+    private function printer($body,$msg,$reload){
 
         try {
             //$connector = new NetworkPrintConnector("192.168.0.200", 9100);
@@ -823,7 +827,7 @@ trait CartTrait {
 
             /* Close printer */
             $printer -> close();
-            $this->emit("message", "Impressão realizada com sucesso!" , IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN,false);
+            $this->emit("message", $msg , IconConstants::ICON_SUCCESS,IconConstants::COLOR_GREEN,$reload);
 
 
         } catch (\Exception $e) {
@@ -832,79 +836,46 @@ trait CartTrait {
 
         }
     }
-// Gerar comandos ESC/POS
-    function createEscposCommandsMike($printer,$body) {
-//        $printer->initialize();
-//        $printer->setJustification(Printer::JUSTIFY_CENTER);
-//        $printer->text("Impressão de teste\n");
-//        $printer->feed();
-//        $printer->cut();
-
-
-        $printer -> initialize();
-        $printer -> setFont(1);
-        $printer -> setLineSpacing(10);
-        $printer -> setJustification(0);
-        $printer -> selectCharacterTable(3);
-        $printer -> text($body);
-        $printer ->feed(2);
-        $printer -> cut();
-    }
-
-//    // Função para criar comandos ESC/POS
-//    function createEscposCommands() {
-//        $texto = "Impressão de teste";
-//        $ESC = "\x1b";
-//        $GS = "\x1d";
-//
-//        // Comandos ESC/POS
-//        $comando =  $ESC . "@"; // Inicializa a impressora
-//        $comando .= $ESC . "M" . chr(1); // Define a fonte
-//        $comando .= $ESC . "3" . chr(10); // Define o espaçamento entre linhas
-//        $comando .= $ESC . $GS . "t" . chr(3);//selectCharacterTable
-//        $comando .= $ESC . "d" . chr(2); // Avança a linha
-//        $comando .= $GS . "V" . chr(65); // Corta o papel
-//        $comando .= $texto;
-//
-//        return $comando;
-//    }
 
     /***
      * Função para akustar os espaços nos itens da venda para impressão
-    */
+     * @param $string
+     * @param int $total
+     * @param $lado
+     * @return string
+     */
     private function formataEspacos($string, int $total,  $lado) {
 		$totalLen = strlen($string);
 
 		$tam_valor = $total - $totalLen;
-		$espacos = "";
+		$space = "";
 
         for ($i = 0; $i < $tam_valor; $i++) {
-			$espacos .= " ";
+            $space .= " ";
 		}
 
         if ($lado == "D") {
-            $retorno = $string.$espacos;
+            return $string.$space;
         } else {
-            $retorno = $espacos.$string;
+            return $space.$string;
         }
-        return $retorno;
-        }
+    }
 
-    private function comando() {
-
-        $GS = "\x1d";//chr(29);
-        $ESC = "\x1b";//chr(27);
-
-        $COMMAND  = $ESC." @ ";
-        $COMMAND .= $ESC." M ".chr(1); // Select character font: Font B 1(EPSON) ou 49( BEMATECH)
-		$COMMAND .= $ESC." R ".chr(0); //Select an international character set EPSON / BEMATECH
-		$COMMAND .= $ESC." a ".chr(0); // Select justification: Left justification n = 0, "0": Left justificationn = "1": Centeringn = 2, "2": Right justification
-		$COMMAND .= $ESC." t ".chr(2); //tabela de código 3 PC860: Portuguese
-
-		$COMMAND .= $GS." V " . chr(66) . chr(0);// cut partial
-
-		return $COMMAND;
-	}
+//    private function comando() {
+//
+//        $GS = "\x1d";//chr(29);
+//        $ESC = "\x1b";//chr(27);
+//
+//        $COMMAND  = $ESC." @ ";
+//        $COMMAND .= $ESC." M ".chr(1); // Select character font: Font B 1(EPSON) ou 49( BEMATECH)
+//		$COMMAND .= $ESC." R ".chr(0); //Select an international character set EPSON / BEMATECH
+//		$COMMAND .= $ESC." a ".chr(0); // Select justification: Left justification n = 0, "0": Left justificationn = "1": Centeringn = 2, "2": Right justification
+//		$COMMAND .= $ESC." t ".chr(2); //tabela de código 3 PC860: Portuguese
+//
+//		$COMMAND .= $GS." V " . chr(66) . chr(0);// cut partial
+//
+//		return $COMMAND;
+//	}
 
 	/**
      * Retorna a url da imagem
