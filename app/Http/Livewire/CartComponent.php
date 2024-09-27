@@ -5,13 +5,17 @@ namespace App\Http\Livewire;
 
 use App\Constants\IconConstants;
 use App\Http\Models\ProdutoVariacao;
+use App\Http\Services\ApiService;
 use App\Traits\CartTrait;
+use GuzzleHttp\Client;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Livewire\Component;
 
 class CartComponent extends Component {
 
     use CartTrait;
+    protected $apiService;
     public $searchTerm;
     public $products = [];
     public $cartItems = [];
@@ -42,22 +46,38 @@ class CartComponent extends Component {
         $this->getClientId();
     }
 
+//    public function search(Request $request)
+//    {
+//        $this->searchTerm = $request->input('term');
+//
+//        $this->products = ProdutoVariacao::with('images')->where(function($query) {
+//            $query->where('variacao', 'like', '%' . $this->searchTerm . '%')
+//                    ->orWhere('subcodigo', 'like', '%' . $this->searchTerm . '%')
+//                    ->orWhere('descricao', 'like', '%' . $this->searchTerm . '%')
+//                    ->orWhere('gtin', 'like', '%' . $this->searchTerm . '%');
+//        })->where('quantidade', '>', 0)
+//            ->join('loja_produtos_new as lpn', 'lpn.id', '=', 'loja_produtos_variacao.products_id')
+//            ->select('loja_produtos_variacao.*', 'lpn.descricao as produto_descricao',  'lpn.categoria_id', 'lpn.fornecedor_id')
+//            ->where('loja_produtos_variacao.status',true)
+//            ->orderBy('variacao', 'asc')->take(10)->get();
+//
+//        return response()->json($this->products);
+//    }
+
     public function search(Request $request)
     {
-        $this->searchTerm = $request->input('term');
 
-        $this->products = ProdutoVariacao::with('images')->where(function($query) {
-            $query->where('variacao', 'like', '%' . $this->searchTerm . '%')
-                    ->orWhere('subcodigo', 'like', '%' . $this->searchTerm . '%')
-                    ->orWhere('descricao', 'like', '%' . $this->searchTerm . '%')
-                    ->orWhere('gtin', 'like', '%' . $this->searchTerm . '%');
-        })->where('quantidade', '>', 0)
-            ->join('loja_produtos_new as lpn', 'lpn.id', '=', 'loja_produtos_variacao.products_id')
-            ->select('loja_produtos_variacao.*', 'lpn.descricao as produto_descricao',  'lpn.categoria_id', 'lpn.fornecedor_id')
-            ->where('loja_produtos_variacao.status',true)
-            ->orderBy('variacao', 'asc')->take(10)->get();
+        $token = (new ApiService)->getToken();
 
-        return response()->json($this->products);
+        $response = Http::withToken($token)->get(config('app.url_api_busca'), [
+            'term' => $request->input('term')
+        ]);
+
+        if ($response->successful()) {
+            return response()->json($response->json());
+        } else {
+            return response()->json(['error' => 'Erro ao buscar produtos'], 500);
+        }
     }
 
     /**

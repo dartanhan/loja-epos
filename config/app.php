@@ -58,6 +58,10 @@ return [
 
     'url_image' => env('URL_IMAGE', 'api-loja'),
 
+    'url_api_token' => env('URL_API_TOKEN', null),
+
+    'url_api_busca' => env('URL_API_BUSCA', null),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone

@@ -329,3 +329,9 @@
     .highlighted  {
         background-color: #a2e1ea !important; /* Escolha a cor que desejar */
     }
+
+    /* Estilo para o spinner */
+    .loading-spinner {
+        position: absolute;
+        display: none; /* Inicialmente escondido */
+    }

@@ -33,6 +33,7 @@
         <script src="{{URL::asset('js/jquery.mask.min.js')}}"></script>
         <script src="{{URL::asset('js/chosen.jquery.js')}}"></script>
         <script src="https://www.google.com/recaptcha/api.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/spin.js/2.3.2/spin.min.js"></script>
         <!-- BEGIN GLOBAL MANDATORY STYLES -->
         <link href="{{ asset('css/styles.css') }}" rel="stylesheet" type="text/css">
         <!-- END PAGE LEVEL PLUGINS/CUSTOM STYLES -->

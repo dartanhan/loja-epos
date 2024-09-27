@@ -28,47 +28,72 @@ $(document).ready(function() {
     /***
      * PESQUISA DE PRODUTOS
      * */
+        // Configuração simplificada do Spinner com tamanho reduzido
+    let opts = {
+            lines: 8, // número de linhas
+            length: 4, // comprimento da linha (reduzido)
+            width: 5, // largura da linha (reduzido)
+            radius: 5, // raio do círculo (reduzido)
+            color: '#000', // cor do spinner
+            top: '50%', // posição vertical
+            left: '50%', // posição horizontal
+            position: 'absolute' // posição
+        };
 
+    let spinner = new Spinner(opts).spin(); // Cria uma instância do spinner
+    let spinnerContainer = document.getElementById('spinner');
+    let debounceTimer;
     $("#searchProduct").autocomplete({
         minLength: 3,
-        source: function(request, response) {
-            if(request.term.trim()){
-                console.log(fncUrl()+'/search');
-                $.get(fncUrl()+'/search', { term: request.term }, function(data) {
-                    // console.log(data);
-                    // Mapeie os dados para o formato que o autocomplete espera
-                    const formattedData = data.map(elemento => ({
-                        label: elemento.subcodigo +" - "+ elemento.produto_descricao + " - " + elemento.variacao,
-                        value: elemento.subcodigo +" - "+ elemento.produto_descricao + " - " + elemento.variacao, // Valor a ser inserido no input quando um item é selecionado
-                        subcodigo: elemento.subcodigo,
-                        variacaoId: elemento.id,
-                        //descricao: elemento.produto_descricao + " - " + elemento.variacao,
-                        // quantidade: elemento.quantidade,
-                    }));
+        source: function (request, response) {
+            clearTimeout(debounceTimer); // Limpa o timer anterior para evitar chamadas redundantes
 
-                    // Verifique se há dados para exibir
-                    if (formattedData.length === 0) {
-                        formattedData.push({
-                            label: 'Nenhum produto encontrado',
-                            value: '', // Pode definir como vazio ou outro valor padrão
-                        });
-                    }
-                    // Chame a função response com os dados formatados
-                    response(formattedData);
-                });
+            if (request.term.trim()) {
+                // Exibe o spinner
+                spinnerContainer.style.display = 'block';
+                spinnerContainer.appendChild(spinner.el);
+
+                debounceTimer = setTimeout(() => {
+                    $.get(fncUrl() + '/search', { term: request.term }, function (data) {
+                        // Ocultar o spinner após receber a resposta
+                        $("#loadingSpinner").hide();
+
+
+                        // Mapeia os dados para o formato que o autocomplete espera
+                        const formattedData = data.map(elemento => ({
+                            label: elemento.subcodigo + " - " + elemento.produto_descricao + " - " + elemento.variacao,
+                            value: elemento.subcodigo + " - " + elemento.produto_descricao + " - " + elemento.variacao, // Valor a ser inserido no input quando um item é selecionado
+                            subcodigo: elemento.subcodigo,
+                            variacaoId: elemento.id,
+                        }));
+
+                        // Verifica se há dados para exibir
+                        if (formattedData.length === 0) {
+                            formattedData.push({
+                                label: 'Nenhum produto encontrado',
+                                value: '', // Pode definir como vazio ou outro valor padrão
+                            });
+                        }
+                        // Chame a função response com os dados formatados
+                        response(formattedData);
+
+                        //Oculta o spinner após a conclusão
+                        spinnerContainer.style.display = 'none';
+                    });
+                }, 300); // Define um atraso de 300ms antes de fazer a chamada à API
             }
         },
-        select: function(event, ui) {
-            Livewire.emit('addToCart', ui.item.subcodigo,ui.item.variacaoId );
+        select: function (event, ui) {
+            Livewire.emit('addToCart', ui.item.subcodigo, ui.item.variacaoId);
             document.getElementById('searchProduct').focus();
-            // $('#openModalBtn').prop('disabled', false);
-            // Limpe o campo de pesquisa
+
+            // Limpa o campo de pesquisa
             setTimeout(() => {
                 $("#searchProduct").val('');
-                //Adicona ao focus ao input, de pesqusia de produtos
             }, 200);
         }
     });
+
 
 
     /**********************
